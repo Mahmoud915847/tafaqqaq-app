@@ -1,25 +1,42 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { api, saveSession } from '../api/client';
+
+const HOME_BY_ROLE = {
+  Admin: '/admin/requests',
+  Office: '/company/dashboard',
+  Engineer: '/engineer/inspections',
+  Client: '/bookings',
+};
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.includes('admin')) {
-      navigate('/admin/requests');
-    } else if (email.includes('engineer') || email.includes('lina')) {
-      navigate('/engineer/inspections');
-    } else if (email.includes('company') || email.includes('ofoq')) {
-      navigate('/company/dashboard');
-    } else {
-      navigate('/bookings');
+    setError('');
+    setLoading(true);
+    try {
+      const data = await api('/auth/login', {
+        method: 'POST',
+        body: { email: email.trim(), password },
+      });
+      saveSession(data.token, data.user);
+      navigate(HOME_BY_ROLE[data.user.role] ?? '/', { replace: true });
+    } catch (err) {
+      if (err.status === 401) setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+      else if (err.code === 'EMAIL_NOT_VERIFIED') setError('لم يتم تأكيد بريدك بعد. أدخل رمز التحقق الذي وصلك.');
+      else if (err.code === 'NOT_ACTIVATED') setError('لم يتم تفعيل هذا الحساب بعد. استخدم الرابط المرسل إلى بريدك.');
+      else if (err.status === 403) setError('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
+      else setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,15 +135,6 @@ export default function Login() {
 
             {/* Remember Me & Forgot Password */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#475569' }}>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ width: '15px', height: '15px', accentColor: '#0d6e75' }}
-                />
-                <span>تذكرني لمدة 7 أيام</span>
-              </label>
 
               <button
                 type="button"
@@ -137,9 +145,26 @@ export default function Login() {
               </button>
             </div>
 
+            {error && (
+              <div
+                role="alert"
+                style={{
+                  backgroundColor: '#fdecea',
+                  color: '#b42318',
+                  border: '1px solid #f5c2c0',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  fontSize: '12px',
+                }}
+              >
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -149,10 +174,11 @@ export default function Login() {
                 fontSize: '14px',
                 fontWeight: '700',
                 marginTop: '4px',
-                cursor: 'pointer'
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1
               }}
             >
-              دخول
+              {loading ? 'جارٍ الدخول...' : 'دخول'}
             </button>
 
             {/* Register Link */}
