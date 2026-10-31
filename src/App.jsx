@@ -33,6 +33,7 @@ import WriteReport from './Pages/engineer/WriteReport';
 import AdminRequests from './Pages/admin/AdminRequests';
 import AdminRequestDetails from './Pages/admin/AdminRequestDetails';
 import AdminOffices from './Pages/admin/AdminOffices';
+import VerifyOtp from './Pages/Cliente/VerifyOtp';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
         {/* Authentication & Onboarding */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/set-password" element={<SetPassword />} />
 
         {/* Company Registration & Portal */}
