@@ -31,7 +31,13 @@ export default function Login() {
       navigate(HOME_BY_ROLE[data.user.role] ?? '/', { replace: true });
     } catch (err) {
       if (err.status === 401) setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
-      else if (err.code === 'EMAIL_NOT_VERIFIED') setError('لم يتم تأكيد بريدك بعد. أدخل رمز التحقق الذي وصلك.');
+      else if (err.code === 'EMAIL_NOT_VERIFIED') {
+  const cleanEmail = email.trim();
+  try {
+    await api('/auth/resend-otp', { method: 'POST', body: { email: cleanEmail } });
+  } catch { /* the user can press Resend on the next page */ }
+  navigate('/verify-otp', { state: { email: cleanEmail } });
+}
       else if (err.code === 'NOT_ACTIVATED') setError('لم يتم تفعيل هذا الحساب بعد. استخدم الرابط المرسل إلى بريدك.');
       else if (err.status === 403) setError('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
       else setError(err.message);
