@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { clearSession } from '../api/client';
 
 export default function AdminSidebar() {
   const location = useLocation();
@@ -54,6 +55,7 @@ export default function AdminSidebar() {
       <div style={{ paddingTop: '16px' }}>
         <Link
           to="/login"
+          onClick={clearSession}
           style={{
             display: 'block',
             padding: '12px 18px',
