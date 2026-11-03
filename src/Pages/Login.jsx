@@ -224,30 +224,6 @@ export default function Login() {
                 <span>←</span>
               </Link>
             </div>
-
-            {/* Demo Shortcuts matching 05 Login.png */}
-            <div style={{
-              paddingTop: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              fontSize: '12px',
-              color: '#64748b'
-            }}>
-              <span>عرض تجريبي لدخول:</span>
-              <Link to="/company/dashboard" style={{ color: '#0d6e75', fontWeight: '700' }}>
-                مكتب
-              </Link>
-              <span>·</span>
-              <Link to="/engineer/inspections" style={{ color: '#0d6e75', fontWeight: '700' }}>
-                مهندس
-              </Link>
-              <span>·</span>
-              <Link to="/admin/requests" style={{ color: '#0d6e75', fontWeight: '700' }}>
-                أدمن
-              </Link>
-            </div>
           </form>
         </div>
       </main>

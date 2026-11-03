@@ -34,6 +34,7 @@ import AdminRequests from './Pages/admin/AdminRequests';
 import AdminRequestDetails from './Pages/admin/AdminRequestDetails';
 import AdminOffices from './Pages/admin/AdminOffices';
 import VerifyOtp from './Pages/Cliente/VerifyOtp';
+import RequireRole from './components/RequireRole';
 
 function App() {
   return (
@@ -46,12 +47,14 @@ function App() {
         <Route path="/compare" element={<CompareCompanies />} />
 
         {/* Client Booking & Inspection Pages */}
-        <Route path="/book-inspection" element={<BookInspection />} />
-        <Route path="/bookings" element={<MyBookings />} />
-        <Route path="/booking/:id" element={<BookingDetails />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/payment/:id" element={<Payment />} />
-        <Route path="/report/:id" element={<InspectionReport />} />
+        <Route element={<RequireRole roles={['Client']} />}>
+          <Route path="/book-inspection" element={<BookInspection />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/booking/:id" element={<BookingDetails />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment/:id" element={<Payment />} />
+          <Route path="/report/:id" element={<InspectionReport />} />
+        </Route>
 
         {/* Authentication & Onboarding */}
         <Route path="/login" element={<Login />} />
@@ -62,20 +65,26 @@ function App() {
         {/* Company Registration & Portal */}
         <Route path="/register-company" element={<RegisterCompany />} />
         <Route path="/request-submitted" element={<RequestSubmitted />} />
-        <Route path="/company/dashboard" element={<CompanyDashboard />} />
-        <Route path="/company/orders" element={<CompanyOrders />} />
-        <Route path="/company/profile" element={<CompanyProfile />} />
-        <Route path="/company/add-engineer" element={<AddEngineer />} />
+        <Route element={<RequireRole roles={['Office']} />}>
+          <Route path="/company/dashboard" element={<CompanyDashboard />} />
+          <Route path="/company/orders" element={<CompanyOrders />} />
+          <Route path="/company/profile" element={<CompanyProfile />} />
+          <Route path="/company/add-engineer" element={<AddEngineer />} />
+        </Route>
 
         {/* Engineer Portal */}
-        <Route path="/engineer/inspections" element={<EngineerInspections />} />
-        <Route path="/engineer/write-report" element={<WriteReport />} />
-        <Route path="/engineer/write-report/:id" element={<WriteReport />} />
+        <Route element={<RequireRole roles={['Engineer']} />}>
+          <Route path="/engineer/inspections" element={<EngineerInspections />} />
+          <Route path="/engineer/write-report" element={<WriteReport />} />
+          <Route path="/engineer/write-report/:id" element={<WriteReport />} />
+        </Route>
 
         {/* Admin Portal */}
-        <Route path="/admin/requests" element={<AdminRequests />} />
-        <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
-        <Route path="/admin/offices" element={<AdminOffices />} />
+        <Route element={<RequireRole roles={['Admin']} />}>
+          <Route path="/admin/requests" element={<AdminRequests />} />
+          <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
+          <Route path="/admin/offices" element={<AdminOffices />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
