@@ -1,0 +1,308 @@
+/* ===== Tafaqqad navbar ===== */
+.tq-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  transition: box-shadow 0.2s ease;
+}
+.tq-nav.is-scrolled {
+  box-shadow: 0 8px 24px -16px rgba(12, 35, 47, 0.35);
+}
+.tq-nav__inner {
+  max-width: 1280px;
+  height: 76px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+/* Logo */
+.tq-nav__brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.tq-nav__brand img {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+/* Links */
+.tq-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tq-nav__link {
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.tq-nav__link:hover {
+  color: var(--primary);
+  background: var(--bg-page);
+}
+.tq-nav__link.is-active {
+  color: var(--primary);
+  background: var(--primary-light);
+  font-weight: 700;
+}
+.tq-nav__badge {
+  position: absolute;
+  top: -2px;
+  inset-inline-end: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tq-nav__mobile-only {
+  display: none;
+}
+
+/* Actions */
+.tq-nav__actions {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tq-nav__office {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.tq-nav__office:hover {
+  color: var(--primary);
+}
+.tq-nav__divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+}
+
+/* Buttons */
+.tq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.tq-btn--primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+.tq-btn--primary:hover {
+  background: var(--primary-hover);
+}
+.tq-btn--outline {
+  background: #ffffff;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+.tq-btn--outline:hover {
+  background: var(--primary-light);
+}
+
+/* Logged-in user chip + dropdown */
+.tq-user {
+  position: relative;
+}
+.tq-user__chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding-inline: 5px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 22px;
+  background: #ffffff;
+  color: var(--text-muted);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tq-user__chip:hover,
+.tq-user__chip[aria-expanded='true'] {
+  border-color: var(--primary-border);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.tq-user__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tq-user__name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.tq-user__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: 240px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -18px rgba(12, 35, 47, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tq-user__head {
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.tq-user__head strong {
+  font-size: 14px;
+  color: var(--text-main);
+}
+.tq-user__email {
+  font-size: 12px;
+  color: var(--text-muted);
+  direction: ltr;
+}
+.tq-user__role {
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+.tq-user__item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: background-color 0.15s ease;
+}
+.tq-user__item:hover {
+  background: var(--bg-muted);
+}
+.tq-user__item.is-danger {
+  color: var(--danger-text);
+}
+.tq-user__item.is-danger:hover {
+  background: var(--danger-bg);
+}
+
+/* Mobile menu button */
+.tq-nav__burger {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-main);
+  align-items: center;
+  justify-content: center;
+}
+
+/* Keyboard focus */
+.tq-nav a:focus-visible,
+.tq-nav button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ===== Tablet & mobile ===== */
+@media (max-width: 960px) {
+  .tq-nav__inner {
+    height: 68px;
+    padding: 0 16px;
+    gap: 16px;
+  }
+  .tq-nav__brand img {
+    height: 30px;
+  }
+  .tq-nav__burger {
+    display: inline-flex;
+  }
+  .tq-nav__office,
+  .tq-nav__divider,
+  .tq-user__name {
+    display: none;
+  }
+  .tq-nav__links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    inset-inline: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 12px 16px 16px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 18px 30px -24px rgba(12, 35, 47, 0.4);
+  }
+  .tq-nav__links.is-open {
+    display: flex;
+  }
+  .tq-nav__link {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+  .tq-nav__mobile-only {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .tq-btn {
+    height: 38px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+}
