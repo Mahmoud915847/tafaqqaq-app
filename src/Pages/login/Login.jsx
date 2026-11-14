@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { api, saveSession } from '../api/client';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
+import { api, saveSession } from '../../api/client';
 
 const HOME_BY_ROLE = {
   Admin: '/admin/requests',
@@ -32,12 +32,12 @@ export default function Login() {
     } catch (err) {
       if (err.status === 401) setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
       else if (err.code === 'EMAIL_NOT_VERIFIED') {
-  const cleanEmail = email.trim();
-  try {
-    await api('/auth/resend-otp', { method: 'POST', body: { email: cleanEmail } });
-  } catch { /* the user can press Resend on the next page */ }
-  navigate('/verify-otp', { state: { email: cleanEmail } });
-}
+        const cleanEmail = email.trim();
+        try {
+          await api('/auth/resend-otp', { method: 'POST', body: { email: cleanEmail } });
+        } catch { /* user can resend */ }
+        navigate('/verify-otp', { state: { email: cleanEmail } });
+      }
       else if (err.code === 'NOT_ACTIVATED') setError('لم يتم تفعيل هذا الحساب بعد. استخدم الرابط المرسل إلى بريدك.');
       else if (err.status === 403) setError('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
       else setError(err.message);
@@ -72,9 +72,8 @@ export default function Login() {
           maxWidth: '460px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
           border: '1px solid #e2e8f0',
-          
         }}>
-          {/* Header matching 05 Login.png */}
+          {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <h1 style={{
               fontSize: '28px',
@@ -85,7 +84,6 @@ export default function Login() {
               أهلاً فيك
             </h1>
             <p style={{ color: '#64748b', fontSize: '13px', margin: 0 }}>
-        
               سجّل دخولك لمتابعة حجوزاتك
             </p>
           </div>
@@ -141,14 +139,12 @@ export default function Login() {
 
             {/* Remember Me & Forgot Password */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-
-              <button
-                type="button"
-                onClick={() => alert('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.')}
-                style={{ color: '#0d6e75', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+              <Link
+                to="/forgot-password"
+                style={{ color: '#0d6e75', fontWeight: '600', fontSize: '12px' }}
               >
                 نسيت كلمة المرور؟
-              </button>
+              </Link>
             </div>
 
             {error && (
@@ -195,7 +191,7 @@ export default function Login() {
               </Link>
             </div>
 
-            {/* Office Account CTA Box matching 05 Login.png */}
+            {/* Office Account CTA Box */}
             <div style={{
               backgroundColor: '#e6f4f5',
               borderRadius: '10px',

@@ -2,148 +2,242 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import { api, saveSession } from '../../api/client';
 
-const EMPTY = ['', '', '', '', '', ''];
+const MailIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7a939f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
 
 export default function VerifyOtp() {
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const email = state?.email;
+  const location = useLocation();
+  const email = location.state?.email || 'client@email.com';
 
-  const [digits, setDigits] = useState(EMPTY);
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [seconds, setSeconds] = useState(60);
-  const refs = useRef([]);
+  const [digits, setDigits] = useState(['', '', '', '', '', '']);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const inputRefs = useRef([]);
 
-  // No email (page opened directly) -> back to register
+  // 1-minute countdown to 0
   useEffect(() => {
-    if (!email) navigate('/register', { replace: true });
-  }, [email, navigate]);
+    if (timeLeft <= 0) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timeLeft]);
 
-  // Resend countdown
-  useEffect(() => {
-    if (seconds <= 0) return;
-    const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [seconds]);
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
-  const verify = async (code) => {
-    setError('');
-    setInfo('');
-    setLoading(true);
-    try {
-      const data = await api('/auth/verify-otp', { method: 'POST', body: { email, code } });
-      saveSession(data.token, data.user);
-      navigate('/bookings', { replace: true });
-    } catch (err) {
-      if (err.status === 0) setError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
-      else if (err.status === 429) setError('محاولات خاطئة كثيرة. اطلب رمزًا جديدًا.');
-      else if (err.status === 400) setError('الرمز غير صحيح أو منتهي الصلاحية.');
-      else setError('حدث خطأ غير متوقع. حاول مرة أخرى.');
-      setDigits(EMPTY);
-      refs.current[0]?.focus();
-    } finally {
-      setLoading(false);
+  const handleResend = () => {
+    if (timeLeft === 0) {
+      setTimeLeft(60);
     }
   };
 
-  const handleChange = (i, value) => {
-    const v = value.replace(/\D/g, '').slice(-1);
-    const next = [...digits];
-    next[i] = v;
-    setDigits(next);
-    if (v && i < 5) refs.current[i + 1]?.focus();
-    if (next.every((d) => d !== '')) verify(next.join(''));
+  const handleDigitChange = (index, value) => {
+    const val = value.slice(-1);
+    const newDigits = [...digits];
+    newDigits[index] = val;
+    setDigits(newDigits);
+
+    if (val && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
-  const handleKeyDown = (i, e) => {
-    if (e.key === 'Backspace' && !digits[i] && i > 0) refs.current[i - 1]?.focus();
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
   };
 
-  const handlePaste = (e) => {
-    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (!text) return;
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const next = [...EMPTY];
-    text.split('').forEach((c, idx) => (next[idx] = c));
-    setDigits(next);
-    if (text.length === 6) verify(text);
-    else refs.current[text.length]?.focus();
+    navigate('/login');
   };
-
-  const resend = async () => {
-    setError('');
-    setInfo('');
-    try {
-      await api('/auth/resend-otp', { method: 'POST', body: { email } });
-      setInfo('أرسلنا رمزًا جديدًا إلى بريدك.');
-      setSeconds(60);
-      setDigits(EMPTY);
-      refs.current[0]?.focus();
-    } catch {
-      setError('تعذّر إرسال الرمز. حاول مرة أخرى.');
-    }
-  };
-
-  if (!email) return null;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#edf4f5', direction: 'rtl', fontFamily: 'var(--font-family)' }}>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      backgroundColor: '#edf4f5',
+      direction: 'rtl',
+      fontFamily: 'var(--font-family)'
+    }}>
       <Navbar />
 
-      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 20px' }}>
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '36px 40px', width: '100%', maxWidth: '440px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0c232f', marginBottom: '8px' }}>تأكيد البريد الإلكتروني</h1>
-          <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '4px' }}>أرسلنا رمزًا من 6 أرقام إلى</p>
-          <p style={{ color: '#0c232f', fontSize: '13px', fontWeight: '700', direction: 'ltr', marginBottom: '24px' }}>{email}</p>
-
-          {error && (
-            <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{error}</div>
-          )}
-          {info && (
-            <div style={{ backgroundColor: '#e6f9f0', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' }}>{info}</div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', direction: 'ltr', marginBottom: '20px' }}>
-            {digits.map((d, i) => (
-              <input
-                key={i}
-                ref={(el) => (refs.current[i] = el)}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                autoFocus={i === 0}
-                disabled={loading}
-                value={d}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onPaste={handlePaste}
-                style={{ width: '44px', height: '52px', textAlign: 'center', fontSize: '22px', fontWeight: '700', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', backgroundColor: '#fff' }}
-              />
-            ))}
+      <main style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 20px'
+      }}>
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          padding: '36px 36px 28px',
+          width: '100%',
+          maxWidth: '440px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+          border: '1px solid #e2e8f0',
+          textAlign: 'center'
+        }}>
+          {/* Icon */}
+          <div style={{
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            backgroundColor: '#e6eff2',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px'
+          }}>
+            <MailIcon />
           </div>
 
-          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '14px' }}>
-            الرمز صالح لمدة 10 دقائق، ولديك 5 محاولات.
+          {/* Heading */}
+          <h1 style={{
+            fontSize: '22px',
+            fontWeight: '800',
+            color: '#0c232f',
+            marginBottom: '8px'
+          }}>
+            تحقق من بريدك الإلكتروني
+          </h1>
+
+          {/* Subtitle */}
+          <p style={{
+            color: '#64748b',
+            fontSize: '13px',
+            marginBottom: '22px'
+          }}>
+            أرسلنا رمزاً من 6 أرقام إلى{' '}
+            <span style={{ fontWeight: '700', color: '#0c232f', direction: 'ltr', display: 'inline-block' }}>
+              {email}
+            </span>
           </p>
 
-          {seconds > 0 ? (
-            <p style={{ fontSize: '13px', color: '#64748b' }}>
-              إعادة إرسال الرمز بعد 00:{String(seconds).padStart(2, '0')}
-            </p>
-          ) : (
-            <button onClick={resend} style={{ color: '#0d6e75', fontWeight: '700', fontSize: '13px' }}>
-              إعادة إرسال الرمز
-            </button>
-          )}
+          <form onSubmit={handleSubmit}>
+            {/* OTP Inputs */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+              direction: 'ltr',
+              marginBottom: '20px'
+            }}>
+              {digits.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => (inputRefs.current[i] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  autoFocus={i === 0}
+                  onFocus={() => setFocusedIndex(i)}
+                  onChange={(e) => handleDigitChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  style={{
+                    width: '46px',
+                    height: '52px',
+                    textAlign: 'center',
+                    fontSize: '20px',
+                    fontWeight: '700',
+                    borderRadius: '8px',
+                    border: focusedIndex === i ? '1.5px solid #0d6e75' : '1.5px solid #cbd5e1',
+                    outline: 'none',
+                    backgroundColor: '#ffffff',
+                    transition: 'border-color 0.15s'
+                  }}
+                />
+              ))}
+            </div>
 
-          <div style={{ marginTop: '20px', fontSize: '13px', color: '#64748b' }}>
-            <Link to="/register" style={{ color: '#0d6e75', fontWeight: '700' }}>تعديل البريد</Link>
-            {' · '}
-            <Link to="/login" style={{ color: '#0d6e75', fontWeight: '700' }}>دخول</Link>
+            {/* Confirm Button */}
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '8px',
+                backgroundColor: '#0d6e75',
+                color: '#ffffff',
+                fontSize: '15px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                marginBottom: '14px',
+                border: 'none',
+                transition: 'background-color 0.15s'
+              }}
+            >
+              تأكيد الرمز
+            </button>
+          </form>
+
+          {/* Resend text with live countdown from 1 minute to 0 */}
+          <p style={{
+            fontSize: '12px',
+            color: '#64748b',
+            marginBottom: '16px'
+          }}>
+            لم يصلك الرمز؟{' '}
+            {timeLeft > 0 ? (
+              <span style={{ color: '#0d6e75', fontWeight: '700' }}>
+                إعادة الإرسال بعد {formatTime(timeLeft)}
+              </span>
+            ) : (
+              <span
+                onClick={handleResend}
+                style={{
+                  color: '#0d6e75',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                إعادة الإرسال الآن
+              </span>
+            )}
+          </p>
+
+          {/* Notice Box */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #f1f5f9',
+            borderRadius: '8px',
+            padding: '12px 14px',
+            fontSize: '11.5px',
+            color: '#64748b',
+            lineHeight: 1.6,
+            marginBottom: '20px'
+          }}>
+            الرمز صالح لمدة 10 دقائق. بعد 5 محاولات خاطئة ستحتاج رمز جديد.
+          </div>
+
+          {/* Bottom Links */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12.5px'
+          }}>
+            <Link to="/login" style={{ color: '#0d6e75', fontWeight: '600' }}>
+              العودة لتسجيل الدخول
+            </Link>
+            <Link to="/register" style={{ color: '#0d6e75', fontWeight: '600' }}>
+              تعديل البريد الإلكتروني
+            </Link>
           </div>
         </div>
       </main>

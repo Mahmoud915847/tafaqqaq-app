@@ -14,8 +14,13 @@ import InspectionReport from './Pages/Cliente/InspectionReport';
 import Register from './Pages/Cliente/Register';
 
 // Auth & Setup Pages
-import Login from './Pages/Login';
-import SetPassword from './Pages/SetPassword';
+import Login from './Pages/login/Login';
+import SetPassword from './Pages/login/SetPassword';
+import ForgotPassword from './Pages/login/ForgotPassword';
+import ForgotPasswordSent from './Pages/login/ForgotPasswordSent';
+import ResetPassword from './Pages/login/ResetPassword';
+import ResetLinkInvalid from './Pages/login/ResetLinkInvalid';
+import VerifyOtp from './Pages/Cliente/VerifyOtp';
 
 // Company Portal Pages
 import RegisterCompany from './Pages/company/RegisterCompany';
@@ -33,7 +38,6 @@ import WriteReport from './Pages/engineer/WriteReport';
 import AdminRequests from './Pages/admin/AdminRequests';
 import AdminRequestDetails from './Pages/admin/AdminRequestDetails';
 import AdminOffices from './Pages/admin/AdminOffices';
-import VerifyOtp from './Pages/Cliente/VerifyOtp';
 import RequireRole from './components/RequireRole';
 
 function App() {
@@ -60,6 +64,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password-sent" element={<ForgotPasswordSent />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/reset-link-invalid" element={<ResetLinkInvalid />} />
         <Route path="/set-password" element={<SetPassword />} />
 
         {/* Company Registration & Portal */}
