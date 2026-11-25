@@ -1,46 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import OfficeAvatar from '../../components/OfficeAvatar';
+import { listOffices, formatPrice } from '../../api/offices';
 
 export default function Home() {
   const navigate = useNavigate();
 
-  const topCompanies = [
-    {
-      id: 'al-ofoq',
-      name: 'مكتب الأفق الهندسي',
-      initial: 'أ',
-      city: 'عمّان، الأردن',
-      rating: '4.8',
-      reviews: '126',
-      engineers: '14 مهندس',
-      experience: 'خبرة 18 سنة',
-      price: '60'
-    },
-    {
-      id: 'al-bunyan',
-      name: 'شركة البنيان للفحص',
-      initial: 'ب',
-      city: 'إربد، الأردن',
-      rating: '4.6',
-      reviews: '89',
-      engineers: '9 مهندس',
-      experience: 'خبرة 12 سنة',
-      price: '45'
-    },
-    {
-      id: 'al-meamar',
-      name: 'مكتب المعمار الاستشاري',
-      initial: 'م',
-      city: 'الزرقاء، الأردن',
-      rating: '4.5',
-      reviews: '64',
-      engineers: '6 مهندس',
-      experience: 'خبرة 9 سنة',
-      price: '40'
-    }
-  ];
+  // Top 3 offices by rating, from the API.
+  // status: 'loading' | 'ok' | 'error'
+  const [top, setTop] = useState({ status: 'loading', items: [] });
+
+  useEffect(() => {
+    let ignore = false;
+    listOffices({ sort: 'rating', pageSize: 3 })
+      .then((res) => { if (!ignore) setTop({ status: 'ok', items: res.items }); })
+      .catch(() => { if (!ignore) setTop({ status: 'error', items: [] }); });
+    return () => { ignore = true; };
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f9fa', direction: 'rtl', fontFamily: 'var(--font-family)' }}>
@@ -308,8 +286,15 @@ export default function Home() {
             </Link>
           </div>
 
+          {top.status !== 'ok' || top.items.length === 0 ? (
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+              {top.status === 'loading' && 'جارٍ تحميل الشركات…'}
+              {top.status === 'error' && 'تعذّر تحميل الشركات الآن. يمكنك تصفحها من صفحة الشركات.'}
+              {top.status === 'ok' && 'لا توجد شركات متاحة بعد.'}
+            </div>
+          ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-            {topCompanies.map((c) => (
+            {top.items.map((c) => (
               <div
                 key={c.id}
                 style={{
@@ -326,26 +311,13 @@ export default function Home() {
                 {/* Header row */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '46px',
-                      height: '46px',
-                      backgroundColor: '#0d6e75',
-                      color: '#ffffff',
-                      borderRadius: '10px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '20px',
-                      fontWeight: '800'
-                    }}>
-                      {c.initial}
-                    </div>
+                    <OfficeAvatar office={c} size={46} />
                     <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0c232f', margin: '0 0 3px' }}>
-                        {c.name}
+                      <h3 style={{ fontSize: '16px', fontWeight: '800', margin: '0 0 3px' }}>
+                        <Link to={`/company/${c.id}`} style={{ color: '#0c232f' }}>{c.name}</Link>
                       </h3>
                       <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {c.city}
+                        {c.city}، الأردن
                       </div>
                     </div>
                   </div>
@@ -363,20 +335,26 @@ export default function Home() {
                 </div>
 
                 {/* Rating */}
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#d97706', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>★</span>
-                  <span>{c.rating} ({c.reviews} تقييم)</span>
+                <div style={{ fontSize: '13px', fontWeight: '700', color: c.ratingCount > 0 ? '#d97706' : '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {c.ratingCount > 0 ? (
+                    <>
+                      <span>★</span>
+                      <span>{Number(c.ratingAvg).toFixed(1)} ({c.ratingCount} تقييم)</span>
+                    </>
+                  ) : (
+                    <span>جديد · لا تقييمات بعد</span>
+                  )}
                 </div>
 
                 {/* Stats */}
                 <div style={{ fontSize: '13px', color: '#64748b' }}>
-                  {c.engineers} &nbsp; {c.experience}
+                  {c.engineerCount} مهندس • {c.dailyCapacity} فحوصات يومياً
                 </div>
 
                 {/* Price and CTA */}
                 <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
                   <div style={{ fontSize: '14px', color: '#0c232f', marginBottom: '10px' }}>
-                    ابتداءً من <span style={{ fontWeight: '800', color: '#0d6e75', fontSize: '18px' }}>{c.price} د.أ</span>
+                    ابتداءً من <span style={{ fontWeight: '800', color: '#0d6e75', fontSize: '18px' }}>{formatPrice(c.startingPrice)}</span>
                   </div>
 
                   <button
@@ -399,6 +377,7 @@ export default function Home() {
               </div>
             ))}
           </div>
+          )}
         </section>
 
         {/* SECTION 4: ليش تفقّد؟ matching 01 Home.png */}
