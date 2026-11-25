@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, clearSession, getToken, getUser } from '../api/client';
+import { useCompare } from '../hooks/useCompare';
 import './Navbar.css';
 
 // Dashboard link for the non-client roles
@@ -32,7 +33,8 @@ const MenuIcon = ({ open }) => (
   </svg>
 );
 
-export default function Navbar({ selectedCount = 0 }) {
+export default function Navbar() {
+  const compare = useCompare();
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(getUser());
@@ -92,7 +94,7 @@ export default function Navbar({ selectedCount = 0 }) {
   const links = [
     { to: '/', label: 'الرئيسية' },
     { to: '/companies', label: 'الشركات' },
-    { to: '/compare', label: 'قارن', badge: selectedCount },
+        { to: '/compare', label: 'قارن', badge: compare.count },
     ...(!user || user.role === 'Client' ? [{ to: '/bookings', label: 'حجوزاتي', also: '/booking/' }] : []),
     ...(roleHome ? [{ to: roleHome.path, label: roleHome.label }] : []),
   ];

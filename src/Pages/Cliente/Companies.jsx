@@ -95,7 +95,7 @@ export default function Companies() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f9fa', direction: 'rtl', fontFamily: 'var(--font-family)' }}>
-      <Navbar selectedCount={compare.count} />
+      <Navbar/>
 
       <main style={{ maxWidth: '1240px', margin: '0 auto', padding: '36px 24px 80px', width: '100%', flex: 1 }}>
         {/* Header row matching 02 Offices.png */}
