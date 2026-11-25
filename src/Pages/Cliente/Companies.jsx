@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {
-  listOffices, logoSrc, formatPrice, officeErrorMessage,
+  listOffices, formatPrice, officeErrorMessage,
   PROPERTY_TYPES, SORT_OPTIONS,
 } from '../../api/offices';
 import { useCompare, MAX_COMPARE, MIN_COMPARE } from '../../hooks/useCompare';
+import OfficeAvatar from '../../components/OfficeAvatar';
 
 const PAGE_SIZE = 10;
 
@@ -38,29 +39,6 @@ const pagerButton = (disabled) => ({
   color: disabled ? '#94a3b8' : '#0d6e75', fontSize: '13px', fontWeight: '700',
   cursor: disabled ? 'not-allowed' : 'pointer'
 });
-
-// Office logo, or the first letter of its name when there is no logo (or it fails to load)
-function OfficeAvatar({ office }) {
-  const [broken, setBroken] = useState(false);
-  const src = logoSrc(office.logoUrl);
-  const box = {
-    width: '44px', height: '44px', borderRadius: '10px', flexShrink: 0,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
-  };
-  if (src && !broken) {
-    return (
-      <div style={{ ...box, border: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
-        <img src={src} alt={office.name} onError={() => setBroken(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-      </div>
-    );
-  }
-  return (
-    <div style={{ ...box, backgroundColor: '#0d6e75', color: '#ffffff', fontSize: '18px', fontWeight: '800' }}>
-      {office.name?.trim().charAt(0) || 'ت'}
-    </div>
-  );
-}
 
 export default function Companies() {
   const navigate = useNavigate();
