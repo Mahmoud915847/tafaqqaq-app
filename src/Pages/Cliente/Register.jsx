@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { api } from '../../api/client';
@@ -13,6 +13,7 @@ const ltrInput = { ...inputStyle, direction: 'ltr', textAlign: 'right' };
 
 export default function Register() {
   const navigate = useNavigate();
+  const from = useLocation().state?.from; // passed on from Login, used after the OTP step
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -38,7 +39,7 @@ export default function Register() {
         method: 'POST',
         body: { email: cleanEmail, password, fullName: name.trim(), phone: phone.trim() },
       });
-      navigate('/verify-otp', { state: { email: cleanEmail } });
+      navigate('/verify-otp', { state: { email: cleanEmail, from } });
     } catch (err) {
       if (err.status === 0) setError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
       else if (err.status === 409) setError('هذا البريد مسجّل مسبقًا. جرّب تسجيل الدخول.');
@@ -115,7 +116,7 @@ export default function Register() {
 
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '6px' }}>
               عندك حساب؟{' '}
-              <Link to="/login" style={{ color: '#0d6e75', fontWeight: '700', textDecoration: 'none' }}>دخول</Link>
+              <Link to="/login" state={{ from }} style={{ color: '#0d6e75', fontWeight: '700', textDecoration: 'none' }}>دخول</Link>
             </div>
           </form>
         </div>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { api, saveSession } from '../../api/client';
+import { safeFrom } from '../../api/redirect';
 
 const HOME_BY_ROLE = {
   Admin: '/admin/requests',
@@ -14,7 +15,8 @@ const HOME_BY_ROLE = {
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const notice = location.state?.notice;
+  const notice = location.state?.notice; // e.g. sent by SetPassword after success
+  const from = safeFrom(location.state?.from); // the page the user wanted before login
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,7 +32,7 @@ export default function Login() {
         body: { email: email.trim(), password },
       });
       saveSession(data.token, data.user);
-      navigate(HOME_BY_ROLE[data.user.role] ?? '/', { replace: true });
+      navigate(from ?? HOME_BY_ROLE[data.user.role] ?? '/', { replace: true });
     } catch (err) {
       if (err.status === 401) setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
       else if (err.code === 'EMAIL_NOT_VERIFIED') {
@@ -38,7 +40,7 @@ export default function Login() {
         try {
           await api('/auth/resend-otp', { method: 'POST', body: { email: cleanEmail } });
         } catch { /* user can resend */ }
-        navigate('/verify-otp', { state: { email: cleanEmail } });
+        navigate('/verify-otp', { state: { email: cleanEmail, from } });
       }
       else if (err.code === 'NOT_ACTIVATED') setError('لم يتم تفعيل هذا الحساب بعد. استخدم الرابط المرسل إلى بريدك.');
       else if (err.status === 403) setError('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
@@ -91,11 +93,12 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {notice && !error && (
+            {notice && !error && (
               <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', borderRadius: '8px', padding: '10px 12px', fontSize: '13px' }}>
                 {notice}
               </div>
             )}
+
             {/* البريد الإلكتروني */}
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#0c232f', marginBottom: '6px' }}>
@@ -193,7 +196,7 @@ export default function Login() {
             {/* Register Link */}
             <div style={{ textAlign: 'center', fontSize: '13px', color: '#64748b' }}>
               ما عندك حساب؟{' '}
-              <Link to="/register" style={{ color: '#0d6e75', fontWeight: '700', textDecoration: 'none' }}>
+              <Link to="/register" state={{ from }} style={{ color: '#0d6e75', fontWeight: '700', textDecoration: 'none' }}>
                 إنشاء حساب
               </Link>
             </div>
