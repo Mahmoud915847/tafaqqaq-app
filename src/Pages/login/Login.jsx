@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { api, saveSession } from '../../api/client';
@@ -13,6 +13,8 @@ const HOME_BY_ROLE = {
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const notice = location.state?.notice;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -89,6 +91,11 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {notice && !error && (
+              <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', color: '#047857', borderRadius: '8px', padding: '10px 12px', fontSize: '13px' }}>
+                {notice}
+              </div>
+            )}
             {/* البريد الإلكتروني */}
             <div>
               <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#0c232f', marginBottom: '6px' }}>
