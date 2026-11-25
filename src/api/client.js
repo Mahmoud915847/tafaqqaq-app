@@ -74,6 +74,7 @@ export async function api(path, { method = 'GET', body, form } = {}) {
       code: data?.code,          // e.g. EMAIL_NOT_VERIFIED
       message: data?.message ?? firstValidationMessage(data) ?? 'حدث خطأ غير متوقع.',
       errors: data?.errors,
+      retryAfterSeconds: data?.retryAfterSeconds,   // only on 429 from the rate limiter
     };
   }
 
