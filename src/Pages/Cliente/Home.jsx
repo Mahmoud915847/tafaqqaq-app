@@ -122,7 +122,7 @@ export default function Home() {
             }}>
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>تقرير رقم 0142-2026-RPT</span>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>مثال على تقرير الفحص</span>
                 <span style={{
                   backgroundColor: '#e6f9f0',
                   color: '#15803d',
@@ -131,7 +131,7 @@ export default function Home() {
                   padding: '3px 10px',
                   borderRadius: '12px'
                 }}>
-                  مكتمل
+                  نموذج
                 </span>
               </div>
 

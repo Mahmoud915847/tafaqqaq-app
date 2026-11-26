@@ -48,7 +48,7 @@ export default function RequestSubmitted() {
       });
       setResult(data);
     } catch (err) {
-      if (err.status === 0) setError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
+      if (err.status === 0) setError(err.message);
       else if (err.status === 404) setError('لم نجد طلبًا بهذه البيانات. تأكد من رقم الطلب والبريد.');
       else setError('حدث خطأ غير متوقع. حاول مرة أخرى.');
     } finally {

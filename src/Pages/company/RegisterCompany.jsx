@@ -44,6 +44,15 @@ function FileBox({ label, hint, accept, file, onPick, required, full }) {
   );
 }
 
+// The backend sends English text with no error codes: look at it, but only show Arabic
+function requestErrorMessage(err) {
+  if (/open request/i.test(err.message)) return 'يوجد طلب مفتوح بنفس البريد أو رقم الترخيص.';
+  if (/account with this email/i.test(err.message)) return 'هذا البريد مستخدم في حساب آخر.';
+  if (/license number already/i.test(err.message)) return 'يوجد مكتب مسجّل بنفس رقم الترخيص.';
+  if (/previous request/i.test(err.message)) return 'رقم الطلب السابق غير موجود أو لم يكن مرفوضاً.';
+  return 'تأكد من صحة البيانات والملفات: صور أو PDF بحجم لا يتجاوز 5 ميغابايت.';
+}
+
 export default function RegisterCompany() {
   const navigate = useNavigate();
 
@@ -94,8 +103,8 @@ export default function RegisterCompany() {
       const data = await api('/office-requests', { method: 'POST', form });
       navigate('/request-submitted', { state: { referenceNo: data.referenceNo, email: email.trim() } });
     } catch (err) {
-      if (err.status === 0) fail('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
-      else if (err.status === 400 || err.status === 409) fail(err.message || 'تأكد من صحة البيانات والملفات.');
+      if (err.status === 0) fail(err.message);
+      else if (err.status === 400 || err.status === 409) fail(requestErrorMessage(err));
       else fail('حدث خطأ غير متوقع. حاول مرة أخرى.');
     } finally {
       setLoading(false);

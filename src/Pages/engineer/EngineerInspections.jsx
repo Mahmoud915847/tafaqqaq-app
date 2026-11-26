@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getUser } from '../../api/client';
 
 export default function EngineerInspections() {
   const stats = [
@@ -47,7 +48,7 @@ export default function EngineerInspections() {
           فحوصاتي
         </h1>
         <p style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>
-          أهلاً م. لينا، هاي الفحوصات المسندة لك من المكتب.
+          أهلاً {getUser()?.fullName}، هاي الفحوصات المسندة لك من المكتب.
         </p>
       </div>
 
