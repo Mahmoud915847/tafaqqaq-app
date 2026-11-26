@@ -68,9 +68,9 @@ AddEngineer, CompanyDashboard.
 Since then CompanyProfile was split into `/company/info`, `/prices`, `/schedule`, `/engineers`; the admin log
 has its own page `/admin/audit-log`; engineers got a read-only `/engineer/profile`.
 
-**Cleanup (F7), branch `cleanup`:** F7a (portals, logo, favicon) committed. F7b (made-up text, Arabic-only errors,
-lint) in progress. **F7c (backend repo) still to do:** delete `WeatherForecast.cs`, rename
-`Controllers/Admin/dminAuditLogsController.cs`, README section for `/client/bookings`.
+**Cleanup (F7):** F7a (portals, logo, favicon) and F7b (made-up text, Arabic-only errors, lint) are done on branch
+`cleanup`. F7c is in the backend repo (branch `cleanup` there): removed `WeatherForecast.cs`, renamed
+`AdminAuditLogsController.cs`, README section for `/client/bookings`.
 
 **Waiting for Person B – keep the mock:** MyBookings, BookingDetails, Payment (card data must never be sent to
 our API), InspectionReport, CompanyOrders, EngineerInspections, WriteReport.
@@ -86,9 +86,7 @@ The office dashboard shows booking numbers as «— قريباً» (the backend 
   has its own resend.
 - Engineers cannot edit their own details (no endpoint); the office manager does.
 
-## Open questions
-- Home says the payment is released after the report is delivered, and that there is a property history.
-  Neither is built (Person B). Keep, reword or remove?
+- Home makes no claim about releasing the payment or keeping a property history (not built).
 
 ## Mappings
 - Property type: شقة/فيلا/مكتب أو محل/أرض ↔ `Apartment`/`Villa`/`Commercial`/`Land`.
