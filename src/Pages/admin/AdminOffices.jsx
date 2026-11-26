@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import AdminSidebar from '../../components/AdminSidebar';
-import AdminAuditLog from '../../components/AdminAuditLog';
-import { getUser } from '../../api/client';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { listAdminOffices, suspendOffice, reactivateOffice, adminErrorMessage } from '../../api/admin';
 
 const PAGE_SIZE = 20;
@@ -25,13 +22,12 @@ const BADGES = {
 const thStyle = { padding: '16px 20px', fontWeight: '600' };
 const cellStyle = { padding: '16px 20px', color: '#475569' };
 const actionStyle = { fontWeight: '700', fontSize: '13px', cursor: 'pointer', background: 'none', border: 'none' };
-const outlineButton = { border: '1.5px solid #104f55', color: '#104f55', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 16px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' };
+const outlineButton = { border: '1.5px solid var(--primary)', color: 'var(--primary)', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 16px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' };
 const boxStyle = { borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '16px' };
 
 export default function AdminOffices() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = getUser();
 
   const [status, setStatus] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -46,7 +42,6 @@ export default function AdminOffices() {
   const [reasonError, setReasonError] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);          // { ok, text }
-  const [changes, setChanges] = useState(0);           // refreshes the audit log
 
   const requestKey = JSON.stringify([status, search, page, reload]);
   const loading = result.key !== requestKey;
@@ -96,10 +91,9 @@ export default function AdminOffices() {
     setNotice(null);
   };
 
-  // after suspend / reactivate: new list, new counts, new log rows
+  // after suspend / reactivate: new list and new counts
   const refresh = () => {
     setReload((n) => n + 1);
-    setChanges((n) => n + 1);
   };
 
   const fail = (err) => {
@@ -157,169 +151,142 @@ export default function AdminOffices() {
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', direction: 'rtl', fontFamily: 'var(--font-family)', display: 'flex', flexDirection: 'column' }}>
-      {/* Top header */}
-      <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link to="/" style={{ fontSize: '22px', fontWeight: '800', color: '#104f55', textDecoration: 'none' }}>تفقّد</Link>
-          <span style={{ backgroundColor: '#e6f0f1', color: '#104f55', fontSize: '12px', fontWeight: '700', padding: '3px 10px', borderRadius: '16px' }}>
-            حساب أدمن
-          </span>
+    <div style={{ maxWidth: '1000px' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#0c232f', margin: '0 0 8px' }}>
+          المكاتب
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>
+          إدارة حسابات المكاتب: إيقافها وإعادة تفعيلها.
+        </p>
+      </div>
+
+      {/* Tabs + search */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              aria-pressed={status === tab.key}
+              onClick={() => chooseTab(tab.key)}
+              style={{
+                padding: '8px 16px', borderRadius: '20px', border: '1px solid', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
+                backgroundColor: status === tab.key ? 'var(--primary-light)' : '#ffffff',
+                color: status === tab.key ? 'var(--primary)' : '#475569',
+                borderColor: status === tab.key ? 'var(--primary)' : '#cbd5e1',
+              }}
+            >
+              {tab.label}{countOf(tab.key) === null ? '' : ` (${countOf(tab.key)})`}
+            </button>
+          ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>{user?.fullName ?? 'الأدمن'}</span>
-          <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#104f55', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '16px' }}>
-            {(user?.fullName ?? 'د').charAt(0)}
-          </div>
+        <form onSubmit={submitSearch} role="search" style={{ display: 'flex', gap: '8px' }}>
+          <input type="search" aria-label="بحث عن مكتب" placeholder="الاسم أو المدينة أو رقم الترخيص" value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: '240px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }} />
+          <button type="submit" style={outlineButton}>بحث</button>
+        </form>
+      </div>
+
+      {notice && (
+        <div role={notice.ok ? 'status' : 'alert'}
+          style={{ ...boxStyle, ...(notice.ok ? { backgroundColor: '#e6f7f0', color: '#047857' } : { backgroundColor: '#fef3c7', color: '#b45309' }) }}>
+          {notice.text}
         </div>
-      </header>
+      )}
 
-      <div style={{ display: 'flex', flex: 1 }}>
-        <main style={{ flex: 1, padding: '40px 48px', overflowY: 'auto' }}>
-          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '28px' }}>
-              <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px' }}>
-                المكاتب وسجل التغييرات
-              </h1>
-              <p style={{ color: '#64748b', fontSize: '15px', margin: 0 }}>
-                إدارة حسابات المكاتب ومتابعة تغييرات الأسعار وأعداد المهندسين.
-              </p>
-            </div>
+      {loadError && (
+        <div role="alert" style={{ ...boxStyle, backgroundColor: '#fee2e2', color: '#b91c1c', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{adminErrorMessage(loadError)}</span>
+          <button type="button" onClick={() => setReload((n) => n + 1)} style={outlineButton}>إعادة المحاولة</button>
+        </div>
+      )}
 
-            {/* Tabs + search */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    aria-pressed={status === tab.key}
-                    onClick={() => chooseTab(tab.key)}
-                    style={{
-                      padding: '8px 16px', borderRadius: '20px', border: '1px solid', fontSize: '13px', fontWeight: '700', cursor: 'pointer',
-                      backgroundColor: status === tab.key ? '#e6f0f1' : '#ffffff',
-                      color: status === tab.key ? '#104f55' : '#475569',
-                      borderColor: status === tab.key ? '#104f55' : '#cbd5e1',
-                    }}
-                  >
-                    {tab.label}{countOf(tab.key) === null ? '' : ` (${countOf(tab.key)})`}
-                  </button>
-                ))}
-              </div>
-              <form onSubmit={submitSearch} role="search" style={{ display: 'flex', gap: '8px' }}>
-                <input type="search" aria-label="بحث عن مكتب" placeholder="الاسم أو المدينة أو رقم الترخيص" value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  style={{ width: '240px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }} />
-                <button type="submit" style={outlineButton}>بحث</button>
-              </form>
-            </div>
-
-            {notice && (
-              <div role={notice.ok ? 'status' : 'alert'}
-                style={{ ...boxStyle, ...(notice.ok ? { backgroundColor: '#e6f7f0', color: '#047857' } : { backgroundColor: '#fef3c7', color: '#b45309' }) }}>
-                {notice.text}
-              </div>
-            )}
-
-            {loadError && (
-              <div role="alert" style={{ ...boxStyle, backgroundColor: '#fee2e2', color: '#b91c1c', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{adminErrorMessage(loadError)}</span>
-                <button type="button" onClick={() => setReload((n) => n + 1)} style={outlineButton}>إعادة المحاولة</button>
-              </div>
-            )}
-
-            {/* Suspend: the reason is required and emailed to the office */}
-            {suspending && (
-              <form onSubmit={confirmSuspend} aria-label="تعليق المكتب"
-                style={{ backgroundColor: '#fff', border: '1.5px solid #fecaca', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginBottom: '6px' }}>تعليق حساب {suspending.name}</h2>
-                <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
-                  لن يظهر المكتب للعملاء حتى ترفع التعليق. السبب يُرسل إلى مدير المكتب ويُحفظ في السجل.
-                </p>
-                <textarea aria-label="سبب الإيقاف" rows={3} maxLength={REASON_MAX} value={reason}
-                  onChange={(e) => { setReason(e.target.value); setReasonError(''); }}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', resize: 'vertical', fontFamily: 'inherit' }} />
-                {reasonError && <div role="alert" style={{ color: '#b91c1c', fontSize: '13px', marginTop: '6px' }}>{reasonError}</div>}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                  <button type="submit" disabled={busy}
-                    style={{ backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: '700', fontSize: '13px', cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}>
-                    {busy ? 'جارٍ التعليق…' : 'تأكيد التعليق'}
-                  </button>
-                  <button type="button" onClick={() => setSuspending(null)} style={outlineButton}>إلغاء</button>
-                </div>
-              </form>
-            )}
-
-            {/* Offices Table Card */}
-            <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', marginBottom: '36px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '14px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                    <th style={thStyle}>المكتب</th>
-                    <th style={thStyle}>المدينة</th>
-                    <th style={thStyle}>المهندسون</th>
-                    <th style={thStyle}>الأسعار</th>
-                    <th style={thStyle}>الحالة</th>
-                    <th style={{ ...thStyle, textAlign: 'center' }}>إجراء</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading && (
-                    <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>جارٍ التحميل…</td></tr>
-                  )}
-                  {data && data.items.length === 0 && (
-                    <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>لا توجد مكاتب مطابقة.</td></tr>
-                  )}
-                  {data && data.items.map((office) => {
-                    const badge = BADGES[office.status] ?? { text: office.status, style: {} };
-                    return (
-                      <tr key={office.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '16px 20px' }}>
-                          <div style={{ fontWeight: '700', color: '#0f172a' }}>{office.name}</div>
-                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            ترخيص {office.licenseNo}{office.ownerEmail ? <> · <span dir="ltr">{office.ownerEmail}</span></> : null}
-                          </div>
-                        </td>
-                        <td style={cellStyle}>{office.city}</td>
-                        <td style={cellStyle}>{office.activeEngineers}</td>
-                        <td style={cellStyle}>{office.priceCount}</td>
-                        <td style={{ padding: '16px 20px' }}>
-                          <span style={{ padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', ...badge.style }}>
-                            {badge.text}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 20px', textAlign: 'center' }}>
-                          {office.status === 'Suspended' ? (
-                            <button type="button" disabled={busy} onClick={() => reactivate(office)} style={{ ...actionStyle, color: '#104f55' }}>
-                              إعادة التفعيل
-                            </button>
-                          ) : (
-                            <button type="button" disabled={busy} onClick={() => openSuspend(office)} style={{ ...actionStyle, color: '#dc2626' }}>
-                              تعليق الحساب
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-
-              {data && data.total > PAGE_SIZE && (
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center', padding: '14px', fontSize: '13px', color: '#64748b' }}>
-                  <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} style={{ ...outlineButton, opacity: page <= 1 ? 0.4 : 1 }}>السابق</button>
-                  <span>صفحة {page} من {pages}</span>
-                  <button type="button" disabled={page >= pages} onClick={() => setPage(page + 1)} style={{ ...outlineButton, opacity: page >= pages ? 0.4 : 1 }}>التالي</button>
-                </div>
-              )}
-            </div>
-
-            <AdminAuditLog refreshKey={changes} />
+      {/* Suspend: the reason is required and emailed to the office */}
+      {suspending && (
+        <form onSubmit={confirmSuspend} aria-label="تعليق المكتب"
+          style={{ backgroundColor: '#fff', border: '1.5px solid #fecaca', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginBottom: '6px' }}>تعليق حساب {suspending.name}</h2>
+          <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
+            لن يظهر المكتب للعملاء حتى ترفع التعليق. السبب يُرسل إلى مدير المكتب ويُحفظ في السجل.
+          </p>
+          <textarea aria-label="سبب الإيقاف" rows={3} maxLength={REASON_MAX} value={reason}
+            onChange={(e) => { setReason(e.target.value); setReasonError(''); }}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', resize: 'vertical', fontFamily: 'inherit' }} />
+          {reasonError && <div role="alert" style={{ color: '#b91c1c', fontSize: '13px', marginTop: '6px' }}>{reasonError}</div>}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+            <button type="submit" disabled={busy}
+              style={{ backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: '700', fontSize: '13px', cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+              {busy ? 'جارٍ التعليق…' : 'تأكيد التعليق'}
+            </button>
+            <button type="button" onClick={() => setSuspending(null)} style={outlineButton}>إلغاء</button>
           </div>
-        </main>
+        </form>
+      )}
 
-        {/* Sidebar */}
-        <AdminSidebar />
+      {/* Offices Table Card */}
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '14px' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+              <th style={thStyle}>المكتب</th>
+              <th style={thStyle}>المدينة</th>
+              <th style={thStyle}>المهندسون</th>
+              <th style={thStyle}>الأسعار</th>
+              <th style={thStyle}>الحالة</th>
+              <th style={{ ...thStyle, textAlign: 'center' }}>إجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>جارٍ التحميل…</td></tr>
+            )}
+            {data && data.items.length === 0 && (
+              <tr><td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>لا توجد مكاتب مطابقة.</td></tr>
+            )}
+            {data && data.items.map((office) => {
+              const badge = BADGES[office.status] ?? { text: office.status, style: {} };
+              return (
+                <tr key={office.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '16px 20px' }}>
+                    <div style={{ fontWeight: '700', color: '#0f172a' }}>{office.name}</div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      ترخيص {office.licenseNo}{office.ownerEmail ? <> · <span dir="ltr">{office.ownerEmail}</span></> : null}
+                    </div>
+                  </td>
+                  <td style={cellStyle}>{office.city}</td>
+                  <td style={cellStyle}>{office.activeEngineers}</td>
+                  <td style={cellStyle}>{office.priceCount}</td>
+                  <td style={{ padding: '16px 20px' }}>
+                    <span style={{ padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', ...badge.style }}>
+                      {badge.text}
+                    </span>
+                  </td>
+                  <td style={{ padding: '16px 20px', textAlign: 'center' }}>
+                    {office.status === 'Suspended' ? (
+                      <button type="button" disabled={busy} onClick={() => reactivate(office)} style={{ ...actionStyle, color: 'var(--primary)' }}>
+                        إعادة التفعيل
+                      </button>
+                    ) : (
+                      <button type="button" disabled={busy} onClick={() => openSuspend(office)} style={{ ...actionStyle, color: '#dc2626' }}>
+                        تعليق الحساب
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {data && data.total > PAGE_SIZE && (
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', alignItems: 'center', padding: '14px', fontSize: '13px', color: '#64748b' }}>
+            <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} style={{ ...outlineButton, opacity: page <= 1 ? 0.4 : 1 }}>السابق</button>
+            <span>صفحة {page} من {pages}</span>
+            <button type="button" disabled={page >= pages} onClick={() => setPage(page + 1)} style={{ ...outlineButton, opacity: page >= pages ? 0.4 : 1 }}>التالي</button>
+          </div>
+        )}
       </div>
     </div>
   );

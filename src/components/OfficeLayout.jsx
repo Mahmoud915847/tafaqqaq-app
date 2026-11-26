@@ -1,15 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
-import CompanySidebar from './CompanySidebar';
+import { useNavigate } from 'react-router-dom';
+import PortalLayout from './PortalLayout';
 import { getOfficeProfile } from '../api/officePortal';
 import { OfficeContext } from '../hooks/useOffice';
-import './OfficeLayout.css';
 
-// Header + fixed right sidebar for every office page. The page itself is rendered in <Outlet />.
+const SECTIONS = [
+  {
+    links: [
+      { label: 'لوحة التحكم', path: '/company/dashboard', icon: 'dashboard' },
+      { label: 'الطلبات والتعيين', path: '/company/orders', icon: 'orders' },
+    ],
+  },
+  {
+    heading: 'إعدادات الخدمة',
+    links: [
+      { label: 'قائمة الأسعار', path: '/company/prices', icon: 'prices' },
+      { label: 'ساعات العمل والسعة اليومية', path: '/company/schedule', icon: 'schedule' },
+    ],
+  },
+  {
+    heading: 'الفريق',
+    links: [{ label: 'إدارة المهندسين', path: '/company/engineers', icon: 'people' }],
+  },
+];
+
+const BOTTOM = [{ label: 'إدارة الملف', path: '/company/info', icon: 'office' }];
+
+// The office portal: the shared layout with the office menu and the office name in the header.
 export default function OfficeLayout() {
   const navigate = useNavigate();
   const [officeName, setOfficeName] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);   // only used on narrow screens
 
   // the real office name for the header, loaded once
   useEffect(() => {
@@ -25,34 +45,7 @@ export default function OfficeLayout() {
 
   return (
     <OfficeContext.Provider value={{ officeName, setOfficeName }}>
-      <div className="office-layout">
-        <header className="office-header">
-          <div className="office-header__brand">
-            <button type="button" className="office-menu-button" aria-label="القائمة" aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <Link to="/" className="office-header__logo">
-              <img src="/tafaqqad-logo.svg" alt="تفقّد" />
-            </Link>
-            <span className="office-header__pill">حساب شركة</span>
-          </div>
-
-          <div className="office-header__account">
-            <span className="office-header__name">{officeName}</span>
-            <div className="office-header__avatar">{officeName.trim().charAt(0)}</div>
-          </div>
-        </header>
-
-        <CompanySidebar open={menuOpen} onNavigate={() => setMenuOpen(false)} />
-        {menuOpen && <div className="office-backdrop" onClick={() => setMenuOpen(false)} />}
-
-        <main className="office-main">
-          <Outlet />
-        </main>
-      </div>
+      <PortalLayout label="حساب شركة" name={officeName} sections={SECTIONS} bottom={BOTTOM} />
     </OfficeContext.Provider>
   );
 }
