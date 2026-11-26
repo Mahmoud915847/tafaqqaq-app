@@ -32,6 +32,10 @@ import OfficePrices from './Pages/company/OfficePrices';
 import OfficeSchedule from './Pages/company/OfficeSchedule';
 import OfficeEngineers from './Pages/company/OfficeEngineers';
 import OfficeLayout from './components/OfficeLayout';
+import AdminLayout from './components/AdminLayout';
+import EngineerLayout from './components/EngineerLayout';
+import AdminAuditLogPage from './Pages/admin/AdminAuditLogPage';
+import EngineerProfile from './Pages/engineer/EngineerProfile';
 import AddEngineer from './Pages/company/AddEngineer';
 
 // Engineer Portal Pages
@@ -94,16 +98,22 @@ function App() {
 
         {/* Engineer Portal */}
         <Route element={<RequireRole roles={['Engineer']} />}>
-          <Route path="/engineer/inspections" element={<EngineerInspections />} />
-          <Route path="/engineer/write-report" element={<WriteReport />} />
-          <Route path="/engineer/write-report/:id" element={<WriteReport />} />
+          <Route element={<EngineerLayout />}>
+            <Route path="/engineer/inspections" element={<EngineerInspections />} />
+            <Route path="/engineer/write-report" element={<WriteReport />} />
+            <Route path="/engineer/write-report/:id" element={<WriteReport />} />
+            <Route path="/engineer/profile" element={<EngineerProfile />} />
+          </Route>
         </Route>
 
         {/* Admin Portal */}
         <Route element={<RequireRole roles={['Admin']} />}>
-          <Route path="/admin/requests" element={<AdminRequests />} />
-          <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
-          <Route path="/admin/offices" element={<AdminOffices />} />
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/requests" element={<AdminRequests />} />
+            <Route path="/admin/request/:id" element={<AdminRequestDetails />} />
+            <Route path="/admin/offices" element={<AdminOffices />} />
+            <Route path="/admin/audit-log" element={<AdminAuditLogPage />} />
+          </Route>
         </Route>
 
         {/* Fallback */}

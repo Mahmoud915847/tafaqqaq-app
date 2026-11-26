@@ -13,6 +13,13 @@ export function resetPassword(token, password) {
   return api('/auth/reset-password', { method: 'POST', body: { token, password } });
 }
 
+// ---------- the logged-in account ----------
+
+// GET /auth/me -> { id, fullName, email, role }
+export function getMe() {
+  return api('/auth/me');
+}
+
 // ---------- errors ----------
 
 // One Arabic message for the errors any auth call can return

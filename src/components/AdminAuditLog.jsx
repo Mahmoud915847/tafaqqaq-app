@@ -10,7 +10,7 @@ const NO_FILTERS = { action: '', search: '', from: '', to: '' };
 
 const labelStyle = { display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', fontWeight: '600', color: '#64748b' };
 const inputStyle = { padding: '8px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff' };
-const smallButton = { border: '1.5px solid #104f55', color: '#104f55', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 16px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' };
+const smallButton = { border: '1.5px solid var(--primary)', color: 'var(--primary)', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 16px', fontWeight: '700', fontSize: '13px', cursor: 'pointer' };
 
 // refreshKey changes when the page does something that adds a log row
 export default function AdminAuditLog({ refreshKey }) {
@@ -102,7 +102,7 @@ export default function AdminAuditLog({ refreshKey }) {
           إلى تاريخ
           <input name="to" type="date" value={draft.to} onChange={set('to')} style={inputStyle} />
         </label>
-        <button type="submit" style={{ ...smallButton, backgroundColor: '#104f55', color: '#fff' }}>تطبيق</button>
+        <button type="submit" style={{ ...smallButton, backgroundColor: 'var(--primary)', color: '#fff' }}>تطبيق</button>
         <button type="button" onClick={clear} style={smallButton}>مسح</button>
       </form>
 

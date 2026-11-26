@@ -65,9 +65,9 @@ export default function Footer({ showCompanyBanner = false }) {
         alignItems: 'center',
         gap: '16px'
       }}>
-        {/* Brand Name */}
-        <Link to="/" style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', textDecoration: 'none' }}>
-          تفقّد
+        {/* Brand logo (white text for the dark background) */}
+        <Link to="/" style={{ display: 'flex' }}>
+          <img src="/tafaqqad-logo-light.svg" alt="تفقّد" style={{ height: '40px', width: 'auto' }} />
         </Link>
 
         {/* Links row matching Footer.png */}

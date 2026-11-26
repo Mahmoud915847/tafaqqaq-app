@@ -1,0 +1,102 @@
+/* Portal layout (admin, office, engineer) (the header is PortalHeader): fixed sidebar on the right, content to its left.
+   A CSS file (not inline styles) because of the hover, active and screen-width rules. */
+
+.portal-layout {
+  --portal-header-height: 68px;
+  --portal-sidebar-width: 296px;
+  min-height: 100vh;
+  direction: rtl;
+  background-color: var(--bg-page);
+  font-family: var(--font-family);
+}
+
+/* ---------- sidebar ---------- */
+.portal-sidebar {
+  position: fixed;
+  top: var(--portal-header-height);
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  width: var(--portal-sidebar-width);
+  overflow-y: auto;           /* only the sidebar scrolls when the screen is short */
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px;
+  background-color: var(--bg-card);
+  border-left: 1px solid var(--border-color);
+}
+.portal-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.portal-sidebar__heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0 14px;
+  margin: 18px 0 2px;
+}
+.portal-sidebar__spacer { flex: 1; min-height: 18px; }
+.portal-sidebar__bottom {
+  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+}
+.portal-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: background-color 0.2s, color 0.2s;
+}
+.portal-link svg { flex-shrink: 0; }
+.portal-link:hover { background-color: var(--bg-muted); }
+.portal-link.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+}
+.portal-link--logout { color: #dc2626; }
+.portal-link--logout:hover { background-color: #fef2f2; }
+
+/* ---------- content ---------- */
+.portal-main {
+  margin-right: var(--portal-sidebar-width);   /* keep clear of the fixed sidebar */
+  padding: 36px 48px 64px;
+  min-width: 0;
+}
+
+/* ---------- narrow screens: the sidebar becomes a drawer from the right ---------- */
+.portal-backdrop { display: none; }
+
+@media (max-width: 900px) {
+  .portal-sidebar {
+    transform: translateX(100%);
+    visibility: hidden;        /* closed links can't be reached with the keyboard */
+    transition: transform 0.2s, visibility 0.2s;
+  }
+  .portal-sidebar--open {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: var(--shadow-md);
+  }
+  .portal-backdrop {
+    display: block;
+    position: fixed;
+    inset: var(--portal-header-height) 0 0 0;
+    z-index: 15;
+    background-color: rgba(11, 38, 49, 0.35);   /* --bg-dark, see-through */
+  }
+  .portal-main {
+    margin-right: 0;
+    padding: 24px 16px 48px;
+    overflow-x: auto;
+  }
+}
