@@ -1,23 +1,56 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
+import EngineerFields from '../../components/EngineerFields';
+import {
+  createEngineer, getOfficeProfile, toEngineerBody, findEngineerProblem, engineerErrorMessage, EMPTY_ENGINEER,
+} from '../../api/officePortal';
 
 export default function AddEngineer() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [specialty, setSpecialty] = useState('إنشائي');
-  const [expYears, setExpYears] = useState('');
-  const [syndicateNo, setSyndicateNo] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const location = useLocation();
+  const [form, setForm] = useState(EMPTY_ENGINEER);
+  const [officeName, setOfficeName] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [created, setCreated] = useState(null);   // the 201 response -> success panel
 
-  const handleSubmit = (e) => {
+  // only for the name in the header
+  useEffect(() => {
+    let ignore = false;
+    getOfficeProfile()
+      .then((profile) => { if (!ignore) setOfficeName(profile.name); })
+      .catch((err) => {
+        if (!ignore && err.status === 401) navigate('/login', { replace: true, state: { from: location.pathname } });
+      });
+    return () => { ignore = true; };
+  }, [navigate, location.pathname]);
+
+  const changeField = (field, value) => {
+    setError('');
+    setForm((f) => ({ ...f, [field]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSuccess(true);
-    setTimeout(() => {
-      navigate('/company/profile');
-    }, 1500);
+    const problem = findEngineerProblem(form, { withEmail: true });
+    setError(problem);
+    if (problem) return;
+
+    setSaving(true);
+    try {
+      setCreated(await createEngineer({ ...toEngineerBody(form), email: form.email.trim() }));
+    } catch (err) {
+      if (err.status === 401) navigate('/login', { replace: true, state: { from: location.pathname } });
+      else setError(engineerErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addAnother = () => {
+    setForm(EMPTY_ENGINEER);
+    setCreated(null);
   };
 
   return (
@@ -57,7 +90,7 @@ export default function AddEngineer() {
 
         {/* Left Office Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>مكتب الأفق الهندسي</span>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>{officeName}</span>
           <div style={{
             width: '36px',
             height: '36px',
@@ -70,7 +103,7 @@ export default function AddEngineer() {
             fontWeight: '700',
             fontSize: '16px'
           }}>
-            أ
+            {officeName.trim().charAt(0)}
           </div>
         </div>
       </header>
@@ -117,7 +150,7 @@ export default function AddEngineer() {
                 بنرسل للمهندس رابط لتعيين كلمة المرور، الرابط صالح لمدة 48 ساعة. أنت ما بتحدد كلمة مرور له.
               </div>
 
-              {isSuccess ? (
+              {created ? (
                 <div style={{ textAlign: 'center', padding: '30px 10px' }}>
                   <div style={{
                     width: '60px',
@@ -134,160 +167,39 @@ export default function AddEngineer() {
                     ✓
                   </div>
                   <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', marginBottom: '6px' }}>
-                    تم إنشاء حساب المهندس بنجاح!
+                    تم إنشاء حساب المهندس {created.engineer.fullName}
                   </h3>
-                  <p style={{ color: '#64748b', fontSize: '14px' }}>
-                    تم إرسال رابط التفعيل إلى {email}. جاري إعادتك للملف...
+                  <p style={{ color: created.emailSent ? '#64748b' : '#b45309', fontSize: '14px', marginBottom: '20px' }}>
+                    {created.emailSent
+                      ? `أرسلنا رابط التفعيل إلى ${created.engineer.email}، وهو صالح لمدة 48 ساعة.`
+                      : 'تعذّر إرسال رابط التفعيل. استخدم «إعادة إرسال الرابط» من صفحة الملف.'}
                   </p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button type="button" onClick={() => navigate('/company/profile')}
+                      style={{ backgroundColor: '#104f55', color: '#ffffff', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', border: 'none' }}>
+                      العودة للملف
+                    </button>
+                    <button type="button" onClick={addAnother}
+                      style={{ backgroundColor: '#ffffff', color: '#475569', border: '1px solid #cbd5e1', padding: '10px 24px', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>
+                      إضافة مهندس آخر
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-                  {/* Row 1: التخصص & الاسم الكامل */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '18px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        التخصص
-                      </label>
-                      <select
-                        value={specialty}
-                        onChange={(e) => setSpecialty(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none',
-                          backgroundColor: '#ffffff'
-                        }}
-                      >
-                        <option value="إنشائي">إنشائي</option>
-                        <option value="معماري">معماري</option>
-                        <option value="كهرباء">كهرباء</option>
-                        <option value="ميكانيك">ميكانيك</option>
-                      </select>
-                    </div>
+                <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                  <EngineerFields values={form} onChange={changeField} withEmail />
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        الاسم الكامل
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="مثال: م. أحمد"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none'
-                        }}
-                      />
+                  {error && (
+                    <div role="alert" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '10px', padding: '12px 14px', fontSize: '13px' }}>
+                      {error}
                     </div>
-                  </div>
-
-                  {/* Row 2: رقم عضوية النقابة & سنوات الخبرة */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        رقم عضوية النقابة
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="XXXX"
-                        value={syndicateNo}
-                        onChange={(e) => setSyndicateNo(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        سنوات الخبرة
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="مثال: 10"
-                        value={expYears}
-                        onChange={(e) => setExpYears(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Row 3: رقم الهاتف & البريد الإلكتروني */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '18px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        رقم الهاتف
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="07X XXX XXXX"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none',
-                          direction: 'ltr',
-                          textAlign: 'right'
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '6px' }}>
-                        البريد الإلكتروني (لرابط التفعيل)
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        placeholder="engineer@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '12px',
-                          borderRadius: '10px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '14px',
-                          outline: 'none',
-                          direction: 'ltr',
-                          textAlign: 'right'
-                        }}
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   {/* Action buttons */}
                   <div style={{ display: 'flex', gap: '14px', marginTop: '12px' }}>
                     <button
                       type="submit"
+                      disabled={saving}
                       style={{
                         backgroundColor: '#104f55',
                         color: '#ffffff',
@@ -295,11 +207,12 @@ export default function AddEngineer() {
                         borderRadius: '10px',
                         fontSize: '15px',
                         fontWeight: '700',
-                        cursor: 'pointer',
+                        cursor: saving ? 'not-allowed' : 'pointer',
+                        opacity: saving ? 0.7 : 1,
                         boxShadow: '0 4px 12px rgba(16, 79, 85, 0.2)'
                       }}
                     >
-                      إنشاء حساب المهندس
+                      {saving ? 'جارٍ الإنشاء…' : 'إنشاء حساب المهندس'}
                     </button>
 
                     <button

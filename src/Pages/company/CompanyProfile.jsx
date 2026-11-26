@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
 import OfficePricesCard from '../../components/OfficePricesCard';
 import OfficeScheduleCard from '../../components/OfficeScheduleCard';
+import OfficeEngineersCard from '../../components/OfficeEngineersCard';
 import { getOfficeProfile, updateOfficeProfile, portalErrorMessage } from '../../api/officePortal';
 
 const EMPTY_FORM = { name: '', city: '', phone: '', description: '' };
@@ -75,27 +76,6 @@ export default function CompanyProfile() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const [engineers, setEngineers] = useState([
-    { id: 1, name: 'م. خالد', specialty: 'إنشائي', exp: '12 سنة', status: 'متاح', statusType: 'active' },
-    { id: 2, name: 'م. لينا', specialty: 'معماري', exp: '9 سنوات', status: 'متاح', statusType: 'active' },
-    { id: 3, name: 'م. عمر', specialty: 'كهرباء', exp: '15 سنة', status: 'متاح', statusType: 'active' },
-    { id: 4, name: 'م. هبة', specialty: 'ميكانيك', exp: '8 سنوات', status: 'بانتظار تفعيل الحساب', statusType: 'pending' }
-  ]);
-
-  const handleToggleStatus = (id) => {
-    setEngineers(engineers.map(eng => {
-      if (eng.id === id) {
-        const isDeactivated = eng.status === 'معطل';
-        return {
-          ...eng,
-          status: isDeactivated ? 'متاح' : 'معطل',
-          statusType: isDeactivated ? 'active' : 'disabled'
-        };
-      }
-      return eng;
-    }));
   };
 
   return (
@@ -299,141 +279,8 @@ export default function CompanyProfile() {
               <OfficeScheduleCard />
             </div>
 
-            {/* Bottom Card: المهندسون (4) */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '28px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-                  المهندسون ({engineers.length})
-                </h2>
-
-                <Link
-                  to="/company/add-engineer"
-                  style={{
-                    backgroundColor: '#104f55',
-                    color: '#ffffff',
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    fontWeight: '700',
-                    fontSize: '13px',
-                    textDecoration: 'none',
-                    boxShadow: '0 2px 6px rgba(16, 79, 85, 0.2)'
-                  }}
-                >
-                  إضافة مهندس
-                </Link>
-              </div>
-
-              {/* Table */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '14px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>الاسم</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>التخصص</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>الخبرة</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>الحالة</th>
-                    <th style={{ padding: '12px 16px', fontWeight: '600', textAlign: 'center' }}>إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {engineers.map((eng) => (
-                    <tr key={eng.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0f172a' }}>
-                        {eng.name}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>
-                        {eng.specialty}
-                      </td>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>
-                        {eng.exp}
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>
-                        {eng.statusType === 'active' && (
-                          <span style={{
-                            backgroundColor: '#e6f7f0',
-                            color: '#059669',
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            padding: '3px 10px',
-                            borderRadius: '12px'
-                          }}>
-                            {eng.status}
-                          </span>
-                        )}
-                        {eng.statusType === 'pending' && (
-                          <span style={{
-                            backgroundColor: '#fffbeb',
-                            color: '#d97706',
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            padding: '3px 10px',
-                            borderRadius: '12px'
-                          }}>
-                            {eng.status}
-                          </span>
-                        )}
-                        {eng.statusType === 'disabled' && (
-                          <span style={{
-                            backgroundColor: '#f1f5f9',
-                            color: '#94a3b8',
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            padding: '3px 10px',
-                            borderRadius: '12px'
-                          }}>
-                            {eng.status}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', fontSize: '13px' }}>
-                          <button
-                            type="button"
-                            onClick={() => alert(`تعديل بيانات ${eng.name}`)}
-                            style={{ color: '#104f55', fontWeight: '600', cursor: 'pointer' }}
-                          >
-                            تعديل
-                          </button>
-
-                          {eng.statusType === 'pending' ? (
-                            <button
-                              type="button"
-                              onClick={() => alert(`تمت إعادة إرسال الرابط إلى ${eng.name}`)}
-                              style={{ color: '#dc2626', fontWeight: '600', cursor: 'pointer' }}
-                            >
-                              إعادة إرسال الرابط
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleStatus(eng.id)}
-                              style={{ color: '#dc2626', fontWeight: '600', cursor: 'pointer' }}
-                            >
-                              {eng.status === 'معطل' ? 'تفعيل' : 'تعطيل'}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <p style={{
-                fontSize: '12px',
-                color: '#64748b',
-                marginTop: '20px',
-                lineHeight: 1.5,
-                textAlign: 'center'
-              }}>
-                تغيير السعر أو عدد المهندسين بيتسجل ويظهر للأدمن. الحذف غير متاح للمهندسين: بنعطل الحساب عشان تظل أسماؤهم على التقارير القديمة.
-              </p>
-            </div>
+            {/* Bottom Card: المهندسون */}
+            <OfficeEngineersCard />
           </div>
         </main>
 
