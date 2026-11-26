@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
+import OfficePricesCard from '../../components/OfficePricesCard';
 import { getOfficeProfile, updateOfficeProfile, portalErrorMessage } from '../../api/officePortal';
 
 const EMPTY_FORM = { name: '', city: '', phone: '', description: '' };
@@ -81,13 +82,6 @@ export default function CompanyProfile() {
     { id: 3, name: 'م. عمر', specialty: 'كهرباء', exp: '15 سنة', status: 'متاح', statusType: 'active' },
     { id: 4, name: 'م. هبة', specialty: 'ميكانيك', exp: '8 سنوات', status: 'بانتظار تفعيل الحساب', statusType: 'pending' }
   ]);
-
-  const [prices] = useState({
-    aptSmall: '60',
-    aptLarge: '80',
-    villa: '120',
-    commercial: '90'
-  });
 
   const handleToggleStatus = (id) => {
     setEngineers(engineers.map(eng => {
@@ -170,10 +164,10 @@ export default function CompanyProfile() {
               </h1>
             </div>
 
-            {/* Top 2 Cards: البيانات الأساسية & قائمة الأسعار */}
+            {/* البيانات الأساسية ثم قائمة الأسعار */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1.4fr 0.9fr',
+              display: 'flex',
+              flexDirection: 'column',
               gap: '24px',
               marginBottom: '28px'
             }}>
@@ -298,75 +292,7 @@ export default function CompanyProfile() {
               </div>
 
               {/* Card 2: قائمة الأسعار */}
-              <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                padding: '28px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-              }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', marginBottom: '20px' }}>
-                  قائمة الأسعار
-                </h2>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: '#1e293b' }}>شقة (حتى 120 م²)</span>
-                    <span style={{
-                      backgroundColor: '#f1f5f9',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontWeight: '800',
-                      color: '#104f55',
-                      fontSize: '14px'
-                    }}>
-                      {prices.aptSmall} د.أ
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: '#1e293b' }}>شقة (أكثر من 120 م²)</span>
-                    <span style={{
-                      backgroundColor: '#f1f5f9',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontWeight: '800',
-                      color: '#104f55',
-                      fontSize: '14px'
-                    }}>
-                      {prices.aptLarge} د.أ
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: '#1e293b' }}>فيلا (حتى 300 م²)</span>
-                    <span style={{
-                      backgroundColor: '#f1f5f9',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontWeight: '800',
-                      color: '#104f55',
-                      fontSize: '14px'
-                    }}>
-                      {prices.villa} د.أ
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', color: '#1e293b' }}>مكتب أو محل تجاري</span>
-                    <span style={{
-                      backgroundColor: '#f1f5f9',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontWeight: '800',
-                      color: '#104f55',
-                      fontSize: '14px'
-                    }}>
-                      {prices.commercial} د.أ
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <OfficePricesCard />
             </div>
 
             {/* Bottom Card: المهندسون (4) */}

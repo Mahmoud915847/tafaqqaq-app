@@ -14,6 +14,17 @@ export function updateOfficeProfile(body) {
   return api('/office/profile', { method: 'PUT', body });
 }
 
+// GET /office/prices -> [{ id, propertyType, sizeBand, price }]
+export function getOfficePrices() {
+  return api('/office/prices');
+}
+
+// PUT /office/prices { items: [{ propertyType, sizeBand, price }] } -> the saved list
+// Replaces the whole list (max 20 rows). Rows are matched by property type + size band.
+export function updateOfficePrices(items) {
+  return api('/office/prices', { method: 'PUT', body: { items } });
+}
+
 // ---------- errors ----------
 
 // One Arabic message for any failed portal call
