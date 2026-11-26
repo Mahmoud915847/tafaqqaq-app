@@ -13,6 +13,9 @@ function priceText(value) {
 
 const SENTENCES = {
   OfficeApproved: () => 'اعتمد الأدمن حساب المكتب',
+  // account requests: the value is "REQ-number: text" and there is no office yet
+  OfficeRequestRejected: (r) => `رفض الأدمن طلب حساب ${r.newValue ?? ''}`,
+  OfficeRequestInfoRequested: (r) => `طلب الأدمن معلومات إضافية للطلب ${r.newValue ?? ''}`,
   OfficeActivated: () => 'اكتمل ملف المكتب وصار ظاهراً للعملاء',
   OfficeBackToIncomplete: () => 'صار ملف المكتب غير مكتمل ولم يعد ظاهراً للعملاء',
   OfficeSuspended: (r) => `أوقف الأدمن المكتب${r.newValue ? `، السبب: ${r.newValue}` : ''}`,
@@ -26,6 +29,29 @@ const SENTENCES = {
   EngineerDeactivated: (r) => `تعطّل حساب المهندس ${r.newValue}`,
   EngineerReactivated: (r) => `أعيد تفعيل حساب المهندس ${r.newValue}`,
 };
+
+// short names for the filter list
+const LABELS = {
+  OfficeApproved: 'اعتماد مكتب',
+  OfficeRequestRejected: 'رفض طلب حساب',
+  OfficeRequestInfoRequested: 'طلب معلومات إضافية',
+  OfficeActivated: 'ظهور المكتب للعملاء',
+  OfficeBackToIncomplete: 'ملف صار غير مكتمل',
+  OfficeSuspended: 'إيقاف مكتب',
+  OfficeReactivated: 'إعادة تفعيل مكتب',
+  OfficeNameChanged: 'تغيير اسم المكتب',
+  CapacityChanged: 'تغيير السعة اليومية',
+  PriceAdded: 'إضافة سعر',
+  PriceChanged: 'تغيير سعر',
+  PriceRemoved: 'حذف سعر',
+  EngineerAdded: 'إضافة مهندس',
+  EngineerDeactivated: 'تعطيل مهندس',
+  EngineerReactivated: 'إعادة تفعيل مهندس',
+};
+
+export function actionLabel(action) {
+  return LABELS[action] ?? action;
+}
 
 // An action we don't know yet is shown by its code
 export function activityText(row) {
