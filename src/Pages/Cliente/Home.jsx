@@ -398,7 +398,7 @@ export default function Home() {
                 دفع آمن
               </h3>
               <p style={{ fontSize: '14px', color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-                بتدفع بعد ما تتفق على السعر النهائي، والمبلغ بيتحرّر بعد تسليم التقرير.
+                بتدفع بعد ما تتفق على السعر النهائي.
               </p>
             </div>
 
@@ -428,7 +428,7 @@ export default function Home() {
                 تقرير مفصّل
               </h3>
               <p style={{ fontSize: '14px', color: '#64748b', lineHeight: 1.7, margin: 0 }}>
-                صور وتقييم لكل بند، وسجل للعقار بتقدر ترجعله بأي وقت.
+                صور وتقييم لكل بند.
               </p>
             </div>
           </div>
