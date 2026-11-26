@@ -137,7 +137,7 @@ export default function OfficeScheduleCard() {
         <div role="alert" style={{ fontSize: '13px', color: '#b91c1c' }}>
           <p style={{ margin: '0 0 12px' }}>{portalErrorMessage(loadError)}</p>
           <button type="button" onClick={() => setReloadKey((k) => k + 1)}
-            style={{ color: '#104f55', border: '1.5px solid #104f55', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 18px', fontWeight: '700', cursor: 'pointer' }}>
+            style={{ color: 'var(--primary)', border: '1.5px solid var(--primary)', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 18px', fontWeight: '700', cursor: 'pointer' }}>
             إعادة المحاولة
           </button>
         </div>
@@ -193,7 +193,7 @@ export default function OfficeScheduleCard() {
             type="submit"
             disabled={saving}
             style={{
-              alignSelf: 'flex-start', marginTop: '6px', backgroundColor: '#104f55', color: '#ffffff', padding: '10px 24px',
+              alignSelf: 'flex-start', marginTop: '6px', backgroundColor: 'var(--primary)', color: '#ffffff', padding: '10px 24px',
               borderRadius: '8px', fontWeight: '700', fontSize: '14px', border: 'none',
               cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1
             }}

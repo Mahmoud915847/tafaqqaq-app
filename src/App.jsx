@@ -27,7 +27,11 @@ import RegisterCompany from './Pages/company/RegisterCompany';
 import RequestSubmitted from './Pages/company/RequestSubmitted';
 import CompanyDashboard from './Pages/company/CompanyDashboard';
 import CompanyOrders from './Pages/company/CompanyOrders';
-import CompanyProfile from './Pages/company/CompanyProfile';
+import OfficeInfo from './Pages/company/OfficeInfo';
+import OfficePrices from './Pages/company/OfficePrices';
+import OfficeSchedule from './Pages/company/OfficeSchedule';
+import OfficeEngineers from './Pages/company/OfficeEngineers';
+import OfficeLayout from './components/OfficeLayout';
 import AddEngineer from './Pages/company/AddEngineer';
 
 // Engineer Portal Pages
@@ -74,10 +78,18 @@ function App() {
         <Route path="/register-company" element={<RegisterCompany />} />
         <Route path="/request-submitted" element={<RequestSubmitted />} />
         <Route element={<RequireRole roles={['Office']} />}>
-          <Route path="/company/dashboard" element={<CompanyDashboard />} />
-          <Route path="/company/orders" element={<CompanyOrders />} />
-          <Route path="/company/profile" element={<CompanyProfile />} />
-          <Route path="/company/add-engineer" element={<AddEngineer />} />
+          <Route element={<OfficeLayout />}>
+            <Route path="/company/dashboard" element={<CompanyDashboard />} />
+            <Route path="/company/orders" element={<CompanyOrders />} />
+            <Route path="/company/prices" element={<OfficePrices />} />
+            <Route path="/company/schedule" element={<OfficeSchedule />} />
+            <Route path="/company/engineers" element={<OfficeEngineers />} />
+            <Route path="/company/engineers/add" element={<AddEngineer />} />
+            <Route path="/company/info" element={<OfficeInfo />} />
+          </Route>
+          {/* old addresses */}
+          <Route path="/company/profile" element={<Navigate to="/company/info" replace />} />
+          <Route path="/company/add-engineer" element={<Navigate to="/company/engineers/add" replace />} />
         </Route>
 
         {/* Engineer Portal */}

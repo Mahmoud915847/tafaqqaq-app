@@ -13,7 +13,7 @@ const thStyle = { padding: '12px 16px', fontWeight: '600' };
 const tdStyle = { padding: '14px 16px', color: '#475569' };
 const actionStyle = { fontWeight: '600', cursor: 'pointer', background: 'none', border: 'none', fontSize: '13px' };
 const outlineButton = {
-  color: '#104f55', border: '1.5px solid #104f55', backgroundColor: '#fff', borderRadius: '8px',
+  color: 'var(--primary)', border: '1.5px solid var(--primary)', backgroundColor: '#fff', borderRadius: '8px',
   padding: '8px 18px', fontWeight: '700', fontSize: '13px', cursor: 'pointer'
 };
 
@@ -127,10 +127,10 @@ export default function OfficeEngineersCard() {
         </h2>
 
         <Link
-          to="/company/add-engineer"
+          to="/company/engineers/add"
           style={{
-            backgroundColor: '#104f55', color: '#ffffff', padding: '8px 18px', borderRadius: '8px',
-            fontWeight: '700', fontSize: '13px', textDecoration: 'none', boxShadow: '0 2px 6px rgba(16, 79, 85, 0.2)'
+            backgroundColor: 'var(--primary)', color: '#ffffff', padding: '8px 18px', borderRadius: '8px',
+            fontWeight: '700', fontSize: '13px', textDecoration: 'none', boxShadow: 'var(--shadow-md)'
           }}
         >
           إضافة مهندس
@@ -193,11 +193,11 @@ export default function OfficeEngineersCard() {
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <button type="button" disabled={busy} onClick={() => startEdit(eng)} style={{ ...actionStyle, color: '#104f55' }}>
+                      <button type="button" disabled={busy} onClick={() => startEdit(eng)} style={{ ...actionStyle, color: 'var(--primary)' }}>
                         تعديل
                       </button>
                       {eng.status === 'Active' && !eng.isActivated && (
-                        <button type="button" disabled={busy} onClick={() => runAction(eng, 'resend-activation')} style={{ ...actionStyle, color: '#104f55' }}>
+                        <button type="button" disabled={busy} onClick={() => runAction(eng, 'resend-activation')} style={{ ...actionStyle, color: 'var(--primary)' }}>
                           إعادة إرسال الرابط
                         </button>
                       )}
@@ -221,7 +221,7 @@ export default function OfficeEngineersCard() {
 
       {editing && (
         <form onSubmit={saveEdit} noValidate aria-label="تعديل المهندس"
-          style={{ marginTop: '20px', border: '1px solid #cce3e6', backgroundColor: '#f8fafc', borderRadius: '12px', padding: '20px' }}>
+          style={{ marginTop: '20px', border: '1px solid var(--primary-border)', backgroundColor: '#f8fafc', borderRadius: '12px', padding: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', margin: '0 0 14px' }}>تعديل بيانات المهندس</h3>
           <EngineerFields values={editing.form} onChange={changeEdit} />
           {editError && (
@@ -231,7 +231,7 @@ export default function OfficeEngineersCard() {
           )}
           <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
             <button type="submit" disabled={saving}
-              style={{ backgroundColor: '#104f55', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', fontWeight: '700', fontSize: '14px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+              style={{ backgroundColor: 'var(--primary)', color: '#ffffff', padding: '10px 24px', borderRadius: '8px', fontWeight: '700', fontSize: '14px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
               {saving ? 'جارٍ الحفظ…' : 'حفظ بيانات المهندس'}
             </button>
             <button type="button" onClick={() => setEditing(null)} style={outlineButton}>إلغاء</button>
