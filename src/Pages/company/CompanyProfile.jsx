@@ -1,13 +1,79 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
+import { getOfficeProfile, updateOfficeProfile, portalErrorMessage } from '../../api/officePortal';
+
+const EMPTY_FORM = { name: '', city: '', phone: '', description: '' };
+
+const toForm = (p) => ({ name: p.name, city: p.city, phone: p.phone ?? '', description: p.description ?? '' });
 
 export default function CompanyProfile() {
-  const [name, setName] = useState('مكتب الأفق الهندسي');
-  const [city, setCity] = useState('عمّان');
-  const [license, setLicense] = useState('4821');
-  const [phone, setPhone] = useState('06 XXX XXXX');
-  const [description, setDescription] = useState('مكتب هندسي متخصص بفحص الشقق والفلل والمباني التجارية.');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ----- basic data (GET / PUT /office/profile) -----
+  const [reloadKey, setReloadKey] = useState(0);
+  const [result, setResult] = useState({ key: null, profile: null, error: null });
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const loading = result.key !== reloadKey;
+  const profile = loading ? null : result.profile;
+  const loadError = loading ? null : result.error;
+
+  useEffect(() => {
+    let ignore = false;
+    getOfficeProfile()
+      .then((data) => {
+        if (ignore) return;
+        setForm(toForm(data));
+        setResult({ key: reloadKey, profile: data, error: null });
+      })
+      .catch((err) => {
+        if (ignore) return;
+        // the session expired: log in again and come back here
+        if (err.status === 401) navigate('/login', { replace: true, state: { from: location.pathname } });
+        else setResult({ key: reloadKey, profile: null, error: err });
+      });
+    return () => { ignore = true; };
+  }, [reloadKey, navigate, location.pathname]);
+
+  const setField = (field) => (e) => {
+    const { value } = e.target;
+    setForm((f) => ({ ...f, [field]: value }));
+    setSaved(false);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaveError('');
+    setSaved(false);
+    const body = {
+      name: form.name.trim(),
+      city: form.city.trim(),
+      phone: form.phone.trim(),
+      description: form.description.trim() || null,
+    };
+    if (!body.name || !body.city || !body.phone) {
+      setSaveError('اسم الشركة والمدينة والهاتف حقول مطلوبة.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updated = await updateOfficeProfile(body);
+      setForm(toForm(updated));
+      setResult({ key: reloadKey, profile: updated, error: null });
+      setSaved(true);
+    } catch (err) {
+      if (err.status === 401) navigate('/login', { replace: true, state: { from: location.pathname } });
+      else setSaveError(portalErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const [engineers, setEngineers] = useState([
     { id: 1, name: 'م. خالد', specialty: 'إنشائي', exp: '12 سنة', status: 'متاح', statusType: 'active' },
@@ -16,17 +82,12 @@ export default function CompanyProfile() {
     { id: 4, name: 'م. هبة', specialty: 'ميكانيك', exp: '8 سنوات', status: 'بانتظار تفعيل الحساب', statusType: 'pending' }
   ]);
 
-  const [prices, setPrices] = useState({
+  const [prices] = useState({
     aptSmall: '60',
     aptLarge: '80',
     villa: '120',
     commercial: '90'
   });
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    alert('تم حفظ التغييرات بنجاح!');
-  };
 
   const handleToggleStatus = (id) => {
     setEngineers(engineers.map(eng => {
@@ -79,7 +140,7 @@ export default function CompanyProfile() {
 
         {/* Left Office Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>مكتب الأفق الهندسي</span>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>{profile?.name ?? ''}</span>
           <div style={{
             width: '36px',
             height: '36px',
@@ -92,7 +153,7 @@ export default function CompanyProfile() {
             fontWeight: '700',
             fontSize: '16px'
           }}>
-            أ
+            {profile?.name?.trim().charAt(0) ?? ''}
           </div>
         </div>
       </header>
@@ -102,30 +163,11 @@ export default function CompanyProfile() {
         {/* Main Content Area */}
         <main style={{ flex: 1, padding: '36px 48px', overflowY: 'auto' }}>
           <div style={{ maxWidth: '1020px', margin: '0 auto' }}>
-            {/* Top Title & Save Button */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
-              <div>
-                <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#0f172a', margin: '0 0 6px' }}>
-                  الملف والمهندسون
-                </h1>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSave}
-                style={{
-                  backgroundColor: '#104f55',
-                  color: '#ffffff',
-                  padding: '10px 24px',
-                  borderRadius: '8px',
-                  fontWeight: '700',
-                  fontSize: '14px',
-                  boxShadow: '0 2px 8px rgba(16, 79, 85, 0.2)',
-                  cursor: 'pointer'
-                }}
-              >
-                حفظ التغييرات
-              </button>
+            {/* Top Title */}
+            <div style={{ marginBottom: '28px' }}>
+              <h1 style={{ fontSize: '30px', fontWeight: '800', color: '#0f172a', margin: '0 0 6px' }}>
+                الملف والمهندسون
+              </h1>
             </div>
 
             {/* Top 2 Cards: البيانات الأساسية & قائمة الأسعار */}
@@ -147,7 +189,20 @@ export default function CompanyProfile() {
                   البيانات الأساسية
                 </h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {loading && <p style={{ fontSize: '13px', color: '#64748b' }}>جارٍ تحميل بيانات المكتب…</p>}
+
+                {loadError && (
+                  <div role="alert" style={{ fontSize: '13px', color: '#b91c1c' }}>
+                    <p style={{ margin: '0 0 12px' }}>{portalErrorMessage(loadError)}</p>
+                    <button type="button" onClick={() => setReloadKey((k) => k + 1)}
+                      style={{ color: '#104f55', border: '1.5px solid #104f55', backgroundColor: '#fff', borderRadius: '8px', padding: '8px 18px', fontWeight: '700', cursor: 'pointer' }}>
+                      إعادة المحاولة
+                    </button>
+                  </div>
+                )}
+
+                {profile && (
+                <form onSubmit={handleSave} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: '#64748b', marginBottom: '6px' }}>
@@ -155,8 +210,9 @@ export default function CompanyProfile() {
                       </label>
                       <input
                         type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={form.name}
+                        maxLength={200}
+                        onChange={setField('name')}
                         style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                       />
                     </div>
@@ -168,7 +224,7 @@ export default function CompanyProfile() {
                       <input
                         type="text"
                         disabled
-                        value={license}
+                        value={profile.licenseNo}
                         style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', color: '#64748b' }}
                       />
                     </div>
@@ -181,8 +237,9 @@ export default function CompanyProfile() {
                       </label>
                       <input
                         type="text"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        value={form.city}
+                        maxLength={80}
+                        onChange={setField('city')}
                         style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
                       />
                     </div>
@@ -193,8 +250,9 @@ export default function CompanyProfile() {
                       </label>
                       <input
                         type="text"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        value={form.phone}
+                        maxLength={30}
+                        onChange={setField('phone')}
                         style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none', direction: 'ltr', textAlign: 'right' }}
                       />
                     </div>
@@ -206,12 +264,37 @@ export default function CompanyProfile() {
                     </label>
                     <textarea
                       rows={2}
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      value={form.description}
+                      maxLength={1000}
+                      onChange={setField('description')}
                       style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none', resize: 'vertical' }}
                     />
                   </div>
-                </div>
+
+                  {saveError && (
+                    <div role="alert" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', padding: '10px 12px', fontSize: '12.5px' }}>
+                      {saveError}
+                    </div>
+                  )}
+                  {saved && (
+                    <div role="status" style={{ backgroundColor: '#e6f7f0', color: '#047857', borderRadius: '8px', padding: '10px 12px', fontSize: '12.5px' }}>
+                      تم حفظ البيانات الأساسية.
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    style={{
+                      alignSelf: 'flex-start', backgroundColor: '#104f55', color: '#ffffff', padding: '10px 24px',
+                      borderRadius: '8px', fontWeight: '700', fontSize: '14px', boxShadow: '0 2px 8px rgba(16, 79, 85, 0.2)',
+                      cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1
+                    }}
+                  >
+                    {saving ? 'جارٍ الحفظ…' : 'حفظ التغييرات'}
+                  </button>
+                </form>
+                )}
               </div>
 
               {/* Card 2: قائمة الأسعار */}
