@@ -1,5 +1,5 @@
-import { Navigate, Outlet } from 'react-router-dom';
 import { clearSession, getToken, getUser } from '../api/client';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 const HOME_BY_ROLE = {
   Admin: '/admin/requests',
@@ -19,12 +19,13 @@ function isExpired(token) {
 }
 
 export default function RequireRole({ roles }) {
+  const location = useLocation();
   const token = getToken();
   const user = getUser();
 
   if (!token || !user || isExpired(token)) {
     if (token) clearSession();
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
 
   if (!roles.includes(user.role)) {

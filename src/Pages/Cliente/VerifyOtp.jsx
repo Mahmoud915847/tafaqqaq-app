@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { api, saveSession } from '../../api/client';
+import { safeFrom } from '../../api/redirect';
 
 const MailIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7a939f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -26,6 +27,7 @@ export default function VerifyOtp() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email ?? '';
+  const from = location.state?.from;  // the page the client wanted before login (e.g. the booking page)
 
   const [digits, setDigits] = useState(EMPTY);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -121,7 +123,7 @@ export default function VerifyOtp() {
       // On success the backend logs the client in right away
       const data = await api('/auth/verify-otp', { method: 'POST', body: { email, code } });
       saveSession(data.token, data.user);
-      navigate('/bookings', { replace: true });
+      navigate(safeFrom(from) ?? '/bookings', { replace: true });
     } catch (err) {
       if (err.status === 400) setError('الرمز غير صحيح أو منتهي الصلاحية.');
       else if (err.status === 429) setError(tooManyMessage(err));
@@ -316,10 +318,10 @@ export default function VerifyOtp() {
             alignItems: 'center',
             fontSize: '12.5px'
           }}>
-            <Link to="/login" style={{ color: '#0d6e75', fontWeight: '600' }}>
+            <Link to="/login" state={{ from }} style={{ color: '#0d6e75', fontWeight: '600' }}>
               العودة لتسجيل الدخول
             </Link>
-            <Link to="/register" style={{ color: '#0d6e75', fontWeight: '600' }}>
+            <Link to="/register" state={{ from }} style={{ color: '#0d6e75', fontWeight: '600' }}>
               تعديل البريد الإلكتروني
             </Link>
           </div>
