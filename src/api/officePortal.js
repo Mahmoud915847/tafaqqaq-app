@@ -25,6 +25,16 @@ export function updateOfficePrices(items) {
   return api('/office/prices', { method: 'PUT', body: { items } });
 }
 
+// GET /office/schedule -> { dailyCapacity, days: [7 x { weekday, isClosed, openTime, closeTime }] } (from Sunday)
+export function getOfficeSchedule() {
+  return api('/office/schedule');
+}
+
+// PUT /office/schedule { dailyCapacity: 1-50, days: all 7, times "HH:mm" } -> the saved schedule
+export function updateOfficeSchedule(body) {
+  return api('/office/schedule', { method: 'PUT', body });
+}
+
 // ---------- errors ----------
 
 // One Arabic message for any failed portal call

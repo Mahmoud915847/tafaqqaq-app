@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CompanySidebar from '../../components/CompanySidebar';
 import OfficePricesCard from '../../components/OfficePricesCard';
+import OfficeScheduleCard from '../../components/OfficeScheduleCard';
 import { getOfficeProfile, updateOfficeProfile, portalErrorMessage } from '../../api/officePortal';
 
 const EMPTY_FORM = { name: '', city: '', phone: '', description: '' };
@@ -164,7 +165,7 @@ export default function CompanyProfile() {
               </h1>
             </div>
 
-            {/* البيانات الأساسية ثم قائمة الأسعار */}
+            {/* البيانات الأساسية، قائمة الأسعار، ساعات العمل */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
@@ -293,6 +294,9 @@ export default function CompanyProfile() {
 
               {/* Card 2: قائمة الأسعار */}
               <OfficePricesCard />
+
+              {/* Card 3: ساعات العمل والسعة */}
+              <OfficeScheduleCard />
             </div>
 
             {/* Bottom Card: المهندسون (4) */}
