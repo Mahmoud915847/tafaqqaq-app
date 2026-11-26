@@ -4,6 +4,7 @@ import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { api, saveSession } from '../../api/client';
 import { safeFrom } from '../../api/redirect';
+import { authErrorMessage } from '../../api/auth';
 
 const HOME_BY_ROLE = {
   Admin: '/admin/requests',
@@ -44,7 +45,8 @@ export default function Login() {
       }
       else if (err.code === 'NOT_ACTIVATED') setError('لم يتم تفعيل هذا الحساب بعد. استخدم الرابط المرسل إلى بريدك.');
       else if (err.status === 403) setError('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
-      else setError(err.message);
+      else if (err.status === 400) setError('تأكد من البريد الإلكتروني وكلمة المرور.');
+      else setError(authErrorMessage(err));
     } finally {
       setLoading(false);
     }

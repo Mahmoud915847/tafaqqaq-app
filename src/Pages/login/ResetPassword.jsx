@@ -1,17 +1,56 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { resetPassword, authErrorMessage } from '../../api/auth';
+
+// The link in the email is {FrontendBaseUrl}/reset-password?token=... and is valid for 1 hour.
+
+// Same rule as the backend (TokenPasswordRequest): 8+ characters, at least one letter and one number
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,100}$/;
+const PASSWORD_MESSAGE = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل، وتحتوي على حرف ورقم.';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/login');
+    setError('');
+
+    if (!PASSWORD_RULE.test(password)) {
+      setError(PASSWORD_MESSAGE);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('كلمتا المرور غير متطابقتين.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await resetPassword(token, password);
+      navigate('/login', {
+        replace: true,
+        state: { notice: 'تم تغيير كلمة المرور. سجّل دخولك بكلمة المرور الجديدة.' }
+      });
+    } catch (err) {
+      // 400 without field errors = the link is invalid, expired or already used
+      if (err.status === 400 && !err.errors) navigate('/reset-link-invalid', { replace: true });
+      else if (err.status === 400) setError(PASSWORD_MESSAGE);
+      else setError(authErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // no token in the URL = broken link
+  if (!token) return <Navigate to="/reset-link-invalid" replace />;
 
   return (
     <div style={{
@@ -142,9 +181,16 @@ export default function ResetPassword() {
               8 أحرف على الأقل، وتحتوي على حرف ورقم.
             </p>
 
+            {error && (
+              <div role="alert" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', padding: '10px 12px', fontSize: '12.5px', lineHeight: 1.6, marginBottom: '12px' }}>
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -153,12 +199,13 @@ export default function ResetPassword() {
                 color: '#ffffff',
                 fontSize: '15px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1,
                 border: 'none',
                 transition: 'background-color 0.15s'
               }}
             >
-              حفظ كلمة المرور
+              {loading ? 'جارٍ الحفظ…' : 'حفظ كلمة المرور'}
             </button>
           </form>
 
