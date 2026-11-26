@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { forgotPassword, authErrorMessage } from '../../api/auth';
 
 const MailIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7a939f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -13,9 +14,12 @@ const MailIcon = () => (
 export default function ForgotPasswordSent() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || 'client@email.com';
+  const email = location.state?.email;
 
   const [timeLeft, setTimeLeft] = useState(60);
+  const [sending, setSending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [error, setError] = useState('');
 
   // 1-minute countdown to 0
   useEffect(() => {
@@ -32,11 +36,24 @@ export default function ForgotPasswordSent() {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  const handleResend = () => {
-    if (timeLeft === 0) {
+  const handleResend = async () => {
+    if (timeLeft > 0 || sending) return;
+    setError('');
+    setResent(false);
+    setSending(true);
+    try {
+      await forgotPassword(email);
+      setResent(true);
       setTimeLeft(60);
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setSending(false);
     }
   };
+
+  // opened directly, without an email: start from the first page
+  if (!email) return <Navigate to="/forgot-password" replace />;
 
   return (
     <div style={{
@@ -96,7 +113,7 @@ export default function ForgotPasswordSent() {
             fontSize: '13px',
             marginBottom: '20px'
           }}>
-            أرسلنا رابط إعادة التعيين إلى{' '}
+            إذا كان هناك حساب مفعّل بهذا البريد، فقد أرسلنا رابط إعادة التعيين إلى{' '}
             <span style={{ fontWeight: '700', color: '#0c232f', direction: 'ltr', display: 'inline-block' }}>
               {email}
             </span>
@@ -144,10 +161,21 @@ export default function ForgotPasswordSent() {
                   textDecoration: 'underline'
                 }}
               >
-                إعادة الإرسال الآن
+                {sending ? 'جارٍ الإرسال…' : 'إعادة الإرسال الآن'}
               </span>
             )}
           </p>
+
+          {resent && (
+            <p role="status" style={{ fontSize: '12px', color: '#15803d', marginBottom: '16px' }}>
+              أعدنا إرسال الطلب. استخدم أحدث رابط يصلك، الروابط السابقة لم تعد تعمل.
+            </p>
+          )}
+          {error && (
+            <div role="alert" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', padding: '10px 12px', fontSize: '12.5px', lineHeight: 1.6, marginBottom: '16px' }}>
+              {error}
+            </div>
+          )}
 
           {/* Notice Box */}
           <div style={{
