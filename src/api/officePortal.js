@@ -102,6 +102,20 @@ export function engineerErrorMessage(err) {
   return portalErrorMessage(err);
 }
 
+// ---------- dashboard ----------
+
+// GET /office/dashboard -> { name, status, isLive, checklist: [{ key, label, done }],
+//   engineers: { active, pendingActivation, deactivated }, priceCount, dailyCapacity, openDays,
+//   ratingAvg, ratingCount, bookings (fixed zeros for now) }
+export function getOfficeDashboard() {
+  return api('/office/dashboard');
+}
+
+// GET /office/activity -> the last 20 [{ action, oldValue, newValue, createdAt (UTC) }]
+export function getOfficeActivity() {
+  return api('/office/activity');
+}
+
 // ---------- errors ----------
 
 // One Arabic message for any failed portal call
