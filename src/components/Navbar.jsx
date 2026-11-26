@@ -59,11 +59,13 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close the menus when the page changes
-  useEffect(() => {
+  // Close the menus when the page changes (adjusted while rendering, no effect needed)
+  const [menuPath, setMenuPath] = useState(location.pathname);
+  if (menuPath !== location.pathname) {
+    setMenuPath(location.pathname);
     setMenuOpen(false);
     setUserOpen(false);
-  }, [location.pathname]);
+  }
 
   // Close the user dropdown when clicking outside it or pressing Escape
   useEffect(() => {

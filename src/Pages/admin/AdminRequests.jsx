@@ -21,30 +21,29 @@ const cellStyle = { padding: '16px 20px', color: '#475569' };
 export default function AdminRequests() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('Pending');
-  const [items, setItems] = useState([]);
   const [counts, setCounts] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [result, setResult] = useState({ tab: null, items: [], error: '' });
+
+  // loading until the answer for the chosen tab arrives
+  const loading = result.tab !== activeTab;
+  const items = loading ? [] : result.items;
+  const error = loading ? '' : result.error;
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError('');
+    const fail = (text) => setResult({ tab: activeTab, items: [], error: text });
 
     api(`/admin/office-requests?status=${activeTab}&pageSize=100`)
       .then((data) => {
         if (cancelled) return;
-        setItems(data.items ?? []);
+        setResult({ tab: activeTab, items: data.items ?? [], error: '' });
         setCounts(data.counts ?? {});
       })
       .catch((err) => {
         if (cancelled) return;
         if (err.status === 401) navigate('/login', { replace: true });
-        else if (err.status === 0) setError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
-        else setError('تعذّر تحميل الطلبات. حاول مرة أخرى.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        else if (err.status === 0) fail(err.message);
+        else fail('تعذّر تحميل الطلبات. حاول مرة أخرى.');
       });
 
     return () => {

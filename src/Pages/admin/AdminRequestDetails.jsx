@@ -30,6 +30,15 @@ function Chip({ ok, children }) {
   );
 }
 
+// Errors of approve / reject / request-info. The backend text is English: never shown.
+function decisionErrorMessage(err) {
+  if (/email/i.test(err.message) && err.status === 409) return 'بريد هذا الطلب مستخدم في حساب آخر.';
+  if (/license/i.test(err.message) && err.status === 409) return 'يوجد مكتب مسجّل بنفس رقم الترخيص.';
+  if (err.status === 409) return 'تغيّرت حالة الطلب. حدّث الصفحة، ثم حاول من جديد.';
+  if (err.status === 400) return 'تأكد من صحة البيانات المدخلة.';
+  return 'حدث خطأ غير متوقع.';
+}
+
 export default function AdminRequestDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -42,18 +51,17 @@ export default function AdminRequestDetails() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null); // { type: 'success' | 'warn' | 'error', text }
 
-  const load = useCallback(async () => {
-    try {
-      const d = await api(`/admin/office-requests/${id}`);
+  const load = useCallback(() => api(`/admin/office-requests/${id}`)
+    .then((d) => {
       setData(d);
       setLoadError('');
-    } catch (err) {
+    })
+    .catch((err) => {
       if (err.status === 401) navigate('/login', { replace: true });
       else if (err.status === 404) setLoadError('الطلب غير موجود.');
-      else if (err.status === 0) setLoadError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
+      else if (err.status === 0) setLoadError(err.message);
       else setLoadError('تعذّر تحميل الطلب.');
-    }
-  }, [id, navigate]);
+    }), [id, navigate]);
 
   useEffect(() => {
     load();
@@ -71,7 +79,7 @@ export default function AdminRequestDetails() {
       await load();
     } catch (err) {
       if (err.status === 0) setNotice({ type: 'error', text: 'تعذّر الاتصال بالخادم.' });
-      else setNotice({ type: 'error', text: err.message || 'حدث خطأ غير متوقع.' });
+      else setNotice({ type: 'error', text: decisionErrorMessage(err) });
     } finally {
       setBusy(false);
     }

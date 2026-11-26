@@ -41,9 +41,9 @@ export default function Register() {
       });
       navigate('/verify-otp', { state: { email: cleanEmail, from } });
     } catch (err) {
-      if (err.status === 0) setError('تعذّر الاتصال بالخادم. تأكد أن الـ Backend شغّال.');
+      if (err.status === 0) setError(err.message);
       else if (err.status === 409) setError('هذا البريد مسجّل مسبقًا. جرّب تسجيل الدخول.');
-      else if (err.status === 400) setError(err.message || 'تأكد من صحة البيانات المدخلة.');
+      else if (err.status === 400) setError('تأكد من صحة البيانات المدخلة.');
       else setError('حدث خطأ غير متوقع. حاول مرة أخرى.');
     } finally {
       setLoading(false);
